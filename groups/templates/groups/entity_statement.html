@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Entity Statement - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Entity Statement</h1>
+
+    {% if form.errors %}
+    <div class="mt-4 text-red-500">
+        <p>Error: Please correct the following errors:</p>
+        <ul>
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if transactions %}
+    <div class="bg-white shadow-md rounded-lg p-4 text-sm">
+        <p class="text-center font-bold">OUR COMPANY NAME LIMITED</p>
+        <p class="text-center">P.O BOX 111-222, CITY.</p>
+        <p class="text-center font-bold mb-4">ENTITY MINISTATEMENT</p>
+
+        <div class="flex justify-between mb-2">
+            <p><strong>Entity Name:</strong> {{ entity.entity_name }}</p>
+            <p><strong>Date:</strong> {{ today|date:"d/m/Y" }}</p>
+        </div>
+        <div class="flex justify-between mb-2">
+            <p><strong>Entity ID:</strong> {{ entity.id }}</p>
+            <p><strong>Account Name:</strong> {{ account_type }}</p>
+        </div>
+        <div class="flex justify-between mb-2">
+            <p><strong>Current Balance:</strong> {{ account_balance|intcomma }}</p>
+        </div>
+
+        <hr class="my-2">
+
+        <div class="overflow-x-auto">
+            <table class="table-auto bg-white shadow-md rounded-lg text-sm w-full">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-2 py-1">Date</th>
+                        <th class="px-2 py-1">Particulars</th>
+                        <th class="px-2 py-1">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr class="bg-gray-100 border-b">
+                            <td class="px-2 py-1">{{ transaction.updated_at|date:"d/m/Y H:i:s" }}</td>
+                            <td class="px-2 py-1">{{ transaction.tr_account }}</td>
+                            <td class="px-2 py-1">{{ transaction.tr_amount|intcomma }}{% if transaction.tr_type == 'debit' %} Dr{% elif transaction.tr_type == 'credit' %} Cr{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-center text-sm mt-2">
+            <p>-----------End of statement----------</p>
+            <p>You were served by {{ user.username }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white shadow-md rounded-lg p-4 text-sm">
+        <p class="text-center font-bold text-red-500">No transactions found for the given criteria.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="text-center mt-4">
+    <a href="{% url 'groups:download_pdf' %}?entity_id={{ entity.id }}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Download PDF</a>
+    <a href="{% url 'groups:download_excel' %}?entity_id={{ entity.id }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Download Excel</a>
+    <a href="{% url 'groups:entity_statement_form' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate Another Statement</a>
+    <button onclick="printStatement()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Print</button>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .container, .container * {
+            visibility: visible;
+        }
+        .container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .container h1, .container p, .container table {
+            color: black; /* Ensure print color is black */
+        }
+    }
+</style>
+
+<script>
+    function printStatement() {
+        window.print();
+    }
+</script>
+{% endblock %}

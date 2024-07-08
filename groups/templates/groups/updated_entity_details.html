@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+   Updated Entity Details - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 px-4">
+        	     <!-- Message display section -->
+    {% if messages %}
+    <div class="container mt-4">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+        <h1 class="text-2xl font-bold mb-4">Updated Entity Details for {{entity.entity_name }}</h1>
+        <div class="bg-white shadow-md rounded-lg p-6 mx-auto mb-4 max-w-md">
+            <p><strong>Entity ID:</strong> {{ entity.id }}</p>
+            <p><strong>Name:</strong> {{ entity.entity_name }} </p>
+            <p><strong>Savings Amount:</strong> Ksh {{ account.savings|intcomma }}</p>
+            <p><strong>Share Capital:</strong> Ksh {{ account.share_capital|intcomma }}</p>
+            <p><strong>Loan Amount:</strong> Ksh {{ account.loan |intcomma }}</p>
+            <a href="{% url 'groups:select_action' entity.id %}" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700 mt-4">Perform Another Action</a>
+        </div>
+    </div>
+{% endblock %}

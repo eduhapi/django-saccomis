@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Search Member - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <h1>Search Member</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="search_term">Search by ID or Name</label>
+            <input type="text" class="form-control" id="search_term" name="search_term">
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    {% if members %}
+        <h2>Search Results</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Member ID</th>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                    <tr>
+                        <td>{{ member.id }}</td>
+                        <td>{{ member.first_name }}</td>
+                        <td>
+                            <a href="{% url 'eastakibacore:select_action' member.id %}" class="btn btn-primary">Select</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

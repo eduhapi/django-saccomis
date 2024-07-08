@@ -1,0 +1,9 @@
+2024-06-23 10:39:58,434 - INFO - Updated MemberAccount ID 1: New Loan Balance = -104028.9799
+2024-06-23 10:39:58,434 - INFO - Updated MemberAccount ID 3: New Loan Balance = -1030.3010
+2024-06-23 10:39:58,434 - INFO - Updated MemberAccount ID 4: New Loan Balance = -1051.0060
+2024-06-23 10:39:58,434 - INFO - Loan balances updated successfully.
+2024-06-23 10:40:32,616 - INFO - Updated MemberAccount ID 1: New Loan Balance = -105069.2698
+2024-06-23 10:40:32,616 - INFO - Updated MemberAccount ID 3: New Loan Balance = -1040.6030
+2024-06-23 10:40:32,631 - INFO - Updated MemberAccount ID 4: New Loan Balance = -1061.5201
+2024-06-23 10:40:32,631 - INFO - Loan balances updated successfully.
+2024-06-23 10:41:55,502 - WARNING - Today is not the 23rd day of the month. No updates performed.

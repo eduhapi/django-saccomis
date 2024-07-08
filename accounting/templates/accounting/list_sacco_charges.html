@@ -1,0 +1,42 @@
+<!-- templates/accounting/list_sacco_charges.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+SACCO Charges - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-2xl font-bold mb-4">SACCO Charges</h2>
+
+    <!-- Table to display SACCO charges -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Charge Name</th>
+                    <th scope="col">Charge Type</th>
+                    <th scope="col">Charge Value</th>
+                    <th scope="col">Updated At</th>
+                    <th scope="col">Updated By</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for charge in sacco_charges %}
+                <tr>
+                    <td>{{ charge.charge_name }}</td>
+                    <td>{{ charge.get_charge_type_display }}</td>
+                    <td>{{ charge.charge_value }}</td>
+                    <td>{{ charge.updated_at }}</td>
+                    <td>{{ charge.updated_by_id }}</td>
+                    <td>
+                        <a href="{% url 'accounting:update_sacco_charge' charge.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

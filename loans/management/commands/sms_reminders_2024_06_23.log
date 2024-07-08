@@ -1,0 +1,4 @@
+2024-06-23 11:18:42,777 - ERROR - Failed to send SMS to 0741607278 for loan ID 26: Serial port error: could not open port 'COM3': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2024-06-23 11:18:42,792 - INFO - SMS reminders processed successfully.
+2024-06-23 11:29:03,936 - INFO - SMS sent to 0741607278 for loan ID 26: Reminder: Your loan installment of 837.85 is due on 2024-06-26. Outstanding amount: 7560.00. Please make your payment on time.
+2024-06-23 11:29:03,952 - INFO - SMS reminders processed successfully.

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Collateral and Guarantor Check</h2>
+
+    {% if is_sufficient %}
+        <div class="alert alert-success mb-4">
+            <p class="font-semibold">Check Successful</p>
+            <p>The collateral and guarantor value ({{ total_value }}) is equal to or exceeds the loan amount ({{ required_value }}).</p>
+            <p>You can proceed to release the loan.</p>
+        </div>
+        <a href="{% url 'loans:release_loan_entity' entity.id loan.id %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md inline-block mb-4">Next</a>
+    {% else %}
+        <div class="alert alert-danger mb-4">
+            <p class="font-semibold">Check Failed</p>
+            <p>The total value of the collaterals and guarantors ({{ total_value }}) does not cover the loan amount ({{ required_value }}).</p>
+            <p>Please add more collaterals or guarantors to cover the loan amount.</p>
+
+            {% if insufficient_guarantors %}
+                <h3>Guarantors with Insufficient Free Savings</h3>
+                <ul class="mb-2">
+                    {% for item in insufficient_guarantors %}
+                        <li>Guarantor: {{ item.guarantor.first_name }} - Guarantee Amount: {{ item.guarantee_amount }} exceeds Free Savings: {{ item.free_savings }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <a href="{% url 'loans:collaterals_entity' entity.id loan.id %}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md inline-block mb-2 mr-2">Back to Collaterals</a>
+        <a href="{% url 'loans:guarantors_entity' entity.id loan.id %}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md inline-block mb-2">Back to Guarantors</a>
+    {% endif %}
+
+    <h3 class="text-lg font-semibold mb-2">Collaterals</h3>
+    <ul class="mb-4">
+        {% for collateral in collaterals %}
+            <li class="mb-2">
+                {{ collateral.collateral_type }}: {{ collateral.value }}
+                <a href="{% url 'loans:delete_collateral_entity' entity.id loan.id collateral.id %}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-md ml-2">[X]</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="text-lg font-semibold mb-2">Guarantors</h3>
+    <ul>
+        {% for guarantor in guarantors %}
+            <li class="mb-2">
+                {{ guarantor.guarantor.first_name }} {{ guarantor.guarantor.last_name }}: {{ guarantor.guarantee_amount }}
+                <a href="{% url 'loans:delete_guarantor_entity' entity.id loan.id guarantor.id %}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-md ml-2">[X]</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

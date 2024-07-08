@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Member Statement - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <div class="bg-white shadow-md rounded-lg p-4">
+        <div class="flex justify-between">
+            <div>
+                <p class="text-sm">OUR COMPANY NAME LIMITED</p>
+                <p class="text-sm">P.O BOX 111-222, CITY.</p>
+                <p class="text-sm">MEMBER MINISTATEMENT</p>
+            </div>
+            <div>
+                <p class="text-sm"><strong>Member Name:</strong> {{ member.first_name }} {{ member.last_name }}</p>
+                <p class="text-sm"><strong>Member ID:</strong> {{ member.id }}</p>
+                <p class="text-sm"><strong>Date:</strong> {{ today|date:"d/m/Y" }}</p>
+                <p class="text-sm"><strong>Account Name:</strong> {{ account_type}}</p>
+            </div>
+        </div>
+
+        <hr class="my-2">
+
+        <div class="overflow-x-auto">
+            <table class="table-auto bg-white shadow-md rounded-lg text-sm w-full">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-2 py-1">Date</th>
+                        <th class="px-2 py-1">Particulars</th>
+                        <th class="px-2 py-1">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr class="bg-gray-100 border-b">
+                            <td class="px-2 py-1">{{ transaction.updated_date|date:"d/m/Y H:i:s" }}</td>
+                            <td class="px-2 py-1">{{ transaction.tr_account }}</td>
+                            <td class="px-2 py-1">{{ transaction.tr_amount|intcomma }}{% if 'dr' in transaction.tr_type %}dr{% elif 'cr' in transaction.tr_type %}cr{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <hr class="my-2">
+
+        <div class="text-center text-sm">
+            <p>-----------End of statement----------</p>
+            <p class="mt-2">You were served by Python system</p>
+        </div>
+    </div>
+    <a href="?download=true&format=pdf" class="btn btn-primary">Download PDF</a>
+<a href="?download=true&format=excel" class="btn btn-primary">Download Excel</a>
+    <div class="text-center mt-2">
+        <button onclick="printStatement()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Print</button>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .container, .container * {
+            visibility: visible;
+        }
+        .container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .container h1, .container p, .container table {
+            color: black; /* Ensure print color is black */
+        }
+    }
+</style>
+
+<script>
+    function printStatement() {
+        window.print();
+    }
+</script>
+{% endblock %}

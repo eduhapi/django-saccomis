@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Search Entity - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mt-8">
+    <h1 class="text-3xl font-bold mb-6">Search Entity to Update Account</h1>
+    <form method="POST" class="bg-white shadow-md rounded-lg p-8">
+        {% csrf_token %}
+        <div class="form-group mb-4">
+            <label for="search_term" class="block text-gray-700 text-sm font-bold mb-2">Search by Entity ID or Name</label>
+            <input type="text" class="form-control w-full px-4 py-2 border border-gray-300 rounded-md" id="search_term" name="search_term">
+        </div>
+        <button type="submit" class="btn btn-primary inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700">Search</button>
+    </form>
+
+    {% if error_message %}
+        <div class="alert alert-danger mt-4">
+            {{ error_message }}
+        </div>
+    {% endif %}
+
+    {% if entities %}
+        <h2 class="text-2xl font-bold mt-8 mb-4">Search Results</h2>
+        <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-4 py-2">Entity ID</th>
+                    <th class="px-4 py-2">Entity Name</th>
+                    <th class="px-4 py-2">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entity in entities %}
+                    <tr class="bg-gray-100 border-b">
+                        <td class="px-4 py-2">{{ entity.id }}</td>
+                        <td class="px-4 py-2">{{ entity.entity_name }}</td>
+                        <td class="px-4 py-2">
+                            <a href="{% url 'groups:select_action' entity.id %}" class="btn btn-primary inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700">Select</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

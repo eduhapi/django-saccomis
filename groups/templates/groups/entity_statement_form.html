@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Entity Statement Form - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Generate Entity Statement</h1>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post"  action="{% url 'groups:entity_statement' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        {% if form.errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong>Error:</strong> Please correct the following errors:
+            <ul>
+                {% for field, errors in form.errors.items %}
+                <li>{{ field }}: {{ errors }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate</button>
+    </form>
+</div>
+{% endblock %}

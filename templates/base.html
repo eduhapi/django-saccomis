@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AKIBANIPESA{% endblock %}</title>
+    {% load static %}
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'members/css/styles.css' %}">
+	 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {% load humanize %}
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <!-- Header -->
+    {% include 'header.html' %}
+    
+    <!-- Main content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-900 text-white p-4 fixed h-full overflow-auto">
+            <h2 class="text-2xl font-bold mb-4">Menu</h2>
+            <ul>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Dashboard</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:dashboard' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Dashboard</a></li>
+                    </ul>
+                </li>
+				 <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Reports</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'reports:member_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Members` statement</a></li>
+						<li><a href="{% url 'reports:loan_balances' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan balances</a></li>
+						<li><a href="{% url 'reports:loan_defaulters' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan defaulterss</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Members Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:mini_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Member statement</a></li>
+                        <li><a href="{% url 'members:register_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Member</a></li>
+                        <li><a href="{% url 'members:view_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Members</a></li>
+                        <li><a href="{% url 'members:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Edit Member Accounts</a></li>
+                    </ul>
+                </li>
+				 <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Groups Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'groups:entity_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Group statement</a></li>
+                        <li><a href="{% url 'groups:register_entity' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Register Group</a></li>
+                        <li><a href="{% url 'groups:view_groups' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Groups</a></li>
+                        <li><a href="{% url 'groups:search_entity' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Edit Group Accounts</a></li>
+                    </ul>
+                </li>
+				 
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Loans Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'loans:create_loan_product' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Loan Product</a></li>
+                        <li><a href="{% url 'loans:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Issue Loan</a></li>
+                        <li><a href="{% url 'loans:view_loan_products' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Products</a></li>
+                        <li><a href="{% url 'loans:view_issued_loans' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Issued Loans</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Defaulters</a></li>
+                    </ul>
+                </li>
+				 <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Finance Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Link Bank Account</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Create Imprest</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Create Expense</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Pay Supplier</a></li>
+                    </ul>
+                </li>
+				 <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Accounting</button>
+                    <ul class="ml-4 hidden group-links">
+                        
+                        <li><a href=" {%url 'accounting:chart_of_accounts' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Chart of Accounts</a></li>
+                        <li><a href="{%url 'accounting:add_expenditure' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Expense</a></li>
+                        <li><a href="{%url 'accounting:add_asset' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Assets</a></li>
+						<li><a href="{%url 'accounting:generate_reports' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Generate report</a></li>
+						<li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Account statement</a></li>
+            
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Administration</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:transactions' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Transactions</a></li>
+                        <li><a href="{% url 'sms:view_sms' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Branches</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Branches</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Expense</a></li>
+                    </ul>
+                </li>
+				<li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">SMSAPI</button>
+                    <ul class="ml-4 hidden group-links">
+					
+                        <li><a href="{% url 'sms:view_sms' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Sms</a></li>
+						<li><a href="{% url 'sms:compose_sms' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Compose Sms</a></li>
+						
+                    </ul>
+                </li>
+				 <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Registry</button>
+                    <ul class="ml-4 hidden group-links">
+					
+                        <li><a href="{% url 'registry:upload_bulk_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Members</a></li>
+						<li><a href="{% url 'registry:upload_bulk_member_accounts' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Membe Accounts</a></li>
+						<li><a href="{% url 'registry:upload_bulk_next_of_kin' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Next of Kin</a></li>
+                    </ul>
+                </li>
+                
+            </ul>
+        </div>
+        
+        <!-- Main content -->
+        <div class="flex-1 ml-64 p-8 overflow-auto">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    {% include 'footer.html' %}
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".group-header").click(function(){
+                $(this).next(".group-links").slideToggle();
+            });
+        });
+    </script>
+</body>
+</html>

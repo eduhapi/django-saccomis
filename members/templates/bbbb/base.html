@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}AKIBANIPESA{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'members/css/styles.css' %}">
+    {% load humanize %}
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    {% include 'members/header.html' %}
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white p-4 fixed h-full overflow-auto">
+            <h2 class="text-2xl font-bold mb-4">Menu</h2>
+            <ul>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Dashboard</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:dashboard' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Dashboard</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Member Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:mini_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Member statement</a></li>
+                        <li><a href="{% url 'members:register_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Member</a></li>
+                        <li><a href="{% url 'members:view_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Members</a></li>
+                        <li><a href="{% url 'members:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Edit Member Accounts</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Loans Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Loan Product</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Issue Loan</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Products</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Repayments</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Defaulters</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Administration</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'members:transactions' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Transactions</a></li>
+                        <li><a href="{% url 'sms:view_sms' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Branches</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Branches</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Expense</a></li>
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Finance Management</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Link Bank Account</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Create Imprest</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Create Expense</a></li>
+                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Pay Supplier</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <!-- Main content -->
+        <div class="flex-1 ml-64 p-8 overflow-auto">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+    {% include 'members/footer.html' %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".group-header").click(function(){
+                $(this).next(".group-links").slideToggle();
+            });
+        });
+    </script>
+</body>
+</html>

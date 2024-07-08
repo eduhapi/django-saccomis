@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Entity Details</h2>
+    <div class="bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">Entity ID: <span class="font-bold">{{ entity.id }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Entity Name: <span class="font-bold">{{ entity.name }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Account Balance: <span class="font-bold">{{ entity_account.balance|intcomma }}</span></p>
+    </div>
+    <a href="{% url 'loans:start_application_entity' entity.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Start Application</a>
+</div>
+{% endblock %}

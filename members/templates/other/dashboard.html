@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Dashboard - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8">
+        <h1 class="text-3xl font-bold mb-6">System Dashboard</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold">Summary</h2>
+                <p>Total Members: {{ members_count }}</p>
+                <p>Total Savings: {{ total_savings }}</p>
+                <p>Total Share Capital: {{ total_share_capital }}</p>
+            </div>
+            <div class="bg-yellow-500 text-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold">Loans</h2>
+                <p>Active Loans: {{ active_loans }}</p>
+                <p>Pending Loans: {{ pending_loans }}</p>
+                <p>Defaulted Loans: {{ defaulted_loans }}</p>
+            </div>
+            <div class="bg-cyan-500 text-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold">Finance</h2>
+                <p>Total Expenses: {{ total_expenses }}</p>
+                <p>Total Income: {{ total_income }}</p>
+                <p>Net Profit: {{ net_profit }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

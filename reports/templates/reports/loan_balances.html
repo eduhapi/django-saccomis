@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}
+    Loan Balances - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Loan Balances</h1>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Principal</th>
+                        <th>Installment</th>
+                        <th>Last Repayment Date</th>
+                        <th>Remaining Repayment Period</th>
+                        <th>Current Loan Balance</th>
+                        <th>Arrears Amount</th>
+                        <th>Arrears Period</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for balance in loan_balances %}
+                        <tr>
+                            <td>{{ balance.id }}</td>
+                            <td>{{ balance.name }}</td>
+                            <td>{{ balance.phone }}</td>
+                            <td>{{ balance.principal|intcomma }}</td>
+                            <td>{{ balance.installment|intcomma }}</td>
+                            <td>{{ balance.last_repayment_date }}</td>
+                            <td>{{ balance.remaining_repayment_period }}</td>
+                            <td>{{ balance.current_loan_balance|intcomma }}</td>
+                            <td>{{ balance.arrears_amount|intcomma }}</td>
+                            <td>{{ balance.arrears_period }}</td>
+                            <td>{{ balance.type }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-4">
+            <a href="?download=true&format=pdf" class="btn btn-danger mr-2">Download PDF</a>
+            <a href="?download=true&format=excel" class="btn btn-success">Download Excel</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Member Statement Details - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Member Statement Details</h1>
+    <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-gray-800 text-white">
+            <tr>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">Sacco Ref Code</th>
+                <th class="px-4 py-2">Member ID</th>
+                <th class="px-4 py-2">Amount</th>
+                <th class="px-4 py-2">Account</th>
+                <th class="px-4 py-2">Mode</th>
+                <th class="px-4 py-2">Destination</th>
+                <th class="px-4 py-2">External Ref Code</th>
+                <th class="px-4 py-2">Updated By</th>
+                <th class="px-4 py-2">Updated Date</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-700">
+            {% for transaction in transactions %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ transaction.id }}</td>
+                    <td class="px-4 py-2">{{ transaction.sacco_ref_code }}</td>
+                    <td class="px-4 py-2">{{ transaction.member_id_id }}</td>
+                    <td class="px-4 py-2">{{ transaction.tr_amount|intcomma }}</td>
+                    <td class="px-4 py-2">{{ transaction.tr_account }}</td>
+                    <td class="px-4 py-2">{{ transaction.get_tr_mode_id_display }}</td>
+                    <td class="px-4 py-2">{{ transaction.tr_destn }}</td>
+                    <td class="px-4 py-2">{{ transaction.external_ref_code }}</td>
+                    <td class="px-4 py-2">{{ transaction.updated_by }}</td>
+                    <td class="px-4 py-2">{{ transaction.updated_date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

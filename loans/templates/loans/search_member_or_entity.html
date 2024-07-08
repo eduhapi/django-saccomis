@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Search Member or Entity - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 px-4">
+        <h1 class="text-2xl font-bold mb-4">Search Member or Entity to Issue Loan</h1>
+        <form method="post" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="member_id" class="block text-sm font-medium text-gray-700">Member or Entity ID</label>
+                <input type="text" name="member_id" id="member_id" required class="form-input mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                {% if form.member_id.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.member_id.errors }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Search</button>
+        </form>
+
+        {% if member %}
+            <div class="bg-white shadow-md rounded-lg p-6 mt-4">
+                <h2 class="text-xl font-bold mb-4">{{ member.first_name }} {{ member.last_name }}</h2>
+                <p>Savings Amount: Ksh {{ savings_amount|intcomma }}</p>
+                <p>Loan Amount: Ksh {{ loan_amount|intcomma }}</p>
+                <p>Guaranteed Amount: Ksh {{ guaranteed_amount|intcomma }}</p>
+                <a href="{% url 'loans:loan_details_member' member.id %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-4 inline-block">Start Loan Application</a>
+            </div>
+        {% elif entity %}
+            <div class="bg-white shadow-md rounded-lg p-6 mt-4">
+                <h2 class="text-xl font-bold mb-4">{{ entity.entity_name }}</h2>
+                <p>Savings Amount: Ksh {{ savings_amount|intcomma }}</p>
+                <p>Loan Amount: Ksh {{ loan_amount|intcomma }}</p>
+                <a href="{% url 'loans:loan_details_entity' entity.id %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-4 inline-block">Start Loan Application</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

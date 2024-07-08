@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compose SMS</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Compose SMS</h1>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'sms:compose_sms' %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="phone">Phone Number:</label>
+                                <input type="text" class="form-control" id="phone" name="phone_number">
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message:</label>
+                                <textarea class="form-control" id="message" name="message" rows="4"></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success">Send SMS</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

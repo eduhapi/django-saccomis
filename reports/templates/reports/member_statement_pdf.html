@@ -1,0 +1,108 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member Statement - AKIBANIPESA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header, .footer {
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header p, .footer p {
+            margin: 0;
+        }
+        .header .company-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .header .address {
+            font-size: 12px;
+        }
+        .content {
+            margin-bottom: 20px;
+        }
+        .content .section {
+            margin-bottom: 10px;
+        }
+        .content .section p {
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <p class="company-name">OUR COMPANY NAME LIMITED</p>
+            <p class="address">P.O BOX 111-222, CITY.</p>
+            <p class="statement-title">MEMBER MINISTATEMENT</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <p><strong>Member Name:</strong> {{ member.first_name }} {{ member.last_name }}</p>
+                <p><strong>Date:</strong> {{ today|date:"d/m/Y" }}</p>
+            </div>
+            <div class="section">
+                <p><strong>Member ID:</strong> {{ member.id }}</p>
+                <p><strong>Account Name:</strong> {{ account_type }}</p>
+            </div>
+            <div class="section">
+                <p><strong>Current Balance:</strong> {{ account_balance }}</p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Particulars</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.updated_date|date:"d/m/Y H:i:s" }}</td>
+                            <td>{{ transaction.tr_account }}</td>
+                            <td>{{ transaction.tr_amount}}{% if 'dr' in transaction.tr_type %}dr{% elif 'cr' in transaction.tr_type %}cr{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>-----------End of statement----------</p>
+            <p>You were served by Python system</p>
+        </div>
+    </div>
+</body>
+</html>

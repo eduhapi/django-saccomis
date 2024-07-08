@@ -1,0 +1,22 @@
+<!-- templates/accounting/account_statement.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Account Statement for {{ account.account_name }}</h2>
+<table>
+    <tr>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Transaction Type</th>
+        <th>Transaction Date</th>
+    </tr>
+    {% for entry in ledger_entries %}
+    <tr>
+        <td>{{ entry.description }}</td>
+        <td>{{ entry.amount }}</td>
+        <td>{{ entry.transaction_type }}</td>
+        <td>{{ entry.transaction_date }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,10 @@
+<!-- loans/templates/loans/issue_loan.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h2>Issue Loan</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Next</button>
+</form>
+{% endblock %}

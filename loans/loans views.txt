@@ -1,0 +1,383 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import LoanProduct, IssuedLoan, Collateral,Guarantor
+from .forms import LoanProductForm,MemberSearchForm, IssueLoanForm, CollateralForm,LoanEligibilityForm,CollateralForm, GuarantorForm
+from members.models import Member, MemberAccount,Transaction  # Assuming you have a Member model
+import datetime
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.utils import timezone
+from .utils import generate_unique_loan_ref_id
+from django.conf import settings  # for getting the user model
+from sms.utils import send_notification  # Import the send_notification function
+from django.db.models import F
+from datetime import timedelta
+from decimal import Decimal, getcontext
+
+
+
+
+
+#User = settings.AUTH_USER_MODEL
+
+def create_loan_product(request):
+    if request.method == 'POST':
+        form = LoanProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Loan product created successfully.')
+            return redirect('loans:create_loan_product')
+    else:
+        form = LoanProductForm()
+    return render(request, 'loans/create_loan_product.html', {'form': form})
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Member, MemberAccount, Guarantor
+from .forms import MemberSearchForm
+from django.db.models import Sum
+
+@login_required
+def search_member(request):
+    if request.method == 'POST':
+        form = MemberSearchForm(request.POST)
+        if form.is_valid():
+            try:
+                member_id = form.cleaned_data.get('member_id')
+                
+                # Query member by member_id
+                member = Member.objects.get(id=member_id)
+                
+                # Get the member account linked to the member
+                account = MemberAccount.objects.get(member=member)
+                
+                # Get the savings amount
+                savings_amount = account.savings
+                loan_amount = account.loan
+                
+                # Sum of guarantee_amount for the member as a guarantor
+                guaranteed_amount = Guarantor.objects.filter(guarantor=member).aggregate(total=Sum('guarantee_amount'))['total'] or 0
+                
+                context = {
+                    'member': member,
+                    'savings_amount': savings_amount,
+                    'loan_amount' : loan_amount,
+                    'guaranteed_amount': guaranteed_amount,
+                }
+                return render(request, 'loans/member_detail.html', context)
+            
+            except ValueError:
+                form.add_error('member_id', 'Invalid input. Please enter a valid member ID.')
+                # Reset the form with errors
+                form = MemberSearchForm(request.POST)
+            
+            except Member.DoesNotExist:
+                form.add_error('member_id', 'Member not found.')
+            
+            except MemberAccount.DoesNotExist:
+                form.add_error('member_id', 'Member account not found.')
+                
+        else:
+            # Handle form validation errors
+            form = MemberSearchForm(request.POST)  # Reset form with errors
+    else:
+        form = MemberSearchForm()
+    
+    return render(request, 'loans/search_member.html', {'form': form})
+
+def start_application(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    # Fetch member details and pass to the template
+    context = {
+        'member': member,
+        # Fetch additional details like savings amount, loan amount, guaranteed amount
+    }
+    return render(request, 'loans/start_application.html', context)
+
+
+
+# Set precision for Decimal calculations
+getcontext().prec = 28
+
+@login_required
+def loan_details(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    member_account = get_object_or_404(MemberAccount, member=member)
+    
+    if request.method == 'POST':
+        form = IssueLoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.member = member
+            
+            # Get loan_amount and repayment_period directly from the form
+            loan_amount = form.cleaned_data['loan_amount']
+            repayment_period = form.cleaned_data['repayment_period']
+            
+            # Apply 1500 processing fees
+            processing_fee = Decimal('1500')
+            net_loan_amount = loan_amount - processing_fee
+
+            # Calculate the installment amount using the provided specific calculation
+            interest_rate = Decimal('0.01')  # 1% monthly interest rate
+            monthly_interest_rate = interest_rate  # monthly interest rate is already 1%
+            months = Decimal(repayment_period)
+            
+            # PMT formula
+            numerator = loan_amount * monthly_interest_rate * (1 + monthly_interest_rate) ** months
+            denominator = (1 + monthly_interest_rate) ** months - 1
+            installment_amount = numerator / denominator
+            
+            # Perform eligibility checks
+            eligibility_results = check_loan_eligibility(member, net_loan_amount)
+            if eligibility_results['qualified']:
+                # Save the loan
+                loan.installment_amount = installment_amount
+                loan.loan_ref_id = generate_unique_loan_ref_id()
+                loan.processed_by = request.user
+                loan.loan_amount = loan_amount
+                # loan.balance = net_loan_amount
+                loan.save()
+                
+                # Redirect to collaterals view with member_id and loan_id
+                return redirect('loans:collaterals', member_id=member.id, loan_id=loan.id)
+            else:
+                # Render loan eligibility template with results
+                return render(request, 'loans/loan_eligibility_summary.html', {'member': member, 'loan_amount': loan_amount, 'eligibility_results': eligibility_results})
+                
+    else:
+        form = IssueLoanForm()
+    return render(request, 'loans/loan_details.html', {'form': form, 'member': member})
+
+
+
+@login_required
+def loan_eligibility(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    
+    if request.method == 'POST':
+        form = LoanEligibilityForm(request.POST)
+        if form.is_valid():
+            loan_amount = form.cleaned_data['loan_amount']
+            eligibility_results = check_loan_eligibility(member, loan_amount)
+            context = {
+                'member': member,
+                'loan_amount': loan_amount,
+                'eligibility_results': eligibility_results,
+            }
+            return render(request, 'loans/loan_eligibility.html', context)
+    else:
+        form = LoanEligibilityForm()
+    return render(request, 'loans/loan_eligibility.html', {'form': form, 'member': member})
+
+def check_loan_eligibility(member, loan_amount):
+    # Implement your eligibility checks based on the loan amount
+    eligibility_results = {
+        'qualified': True,
+        'reasons': []
+    }
+     # Sum of guarantee_amount for the member as a guarantor
+    #guaranteed_amount = Guarantor.objects.filter(guarantor=member).aggregate(total=Sum('guarantee_amount'))['total'] or 0
+    guaranteed_amount = Guarantor.objects.filter(guarantor=member, loan_status__in=['active', 'pending']).aggregate(total=Sum('guarantee_amount'))['total'] or 0
+    # Check free savings (loan_amount / 3)
+    free_savings = member.memberaccount.savings - guaranteed_amount# Adjust this to calculate free savings correctly
+    if loan_amount / 3 > free_savings:
+        eligibility_results['qualified'] = False
+        eligibility_results['reasons'].append('Insufficient free savings.')
+    
+    # Check existing loan balance
+    if member.memberaccount.loan != 0:
+        eligibility_results['qualified'] = False
+        eligibility_results['reasons'].append('Existing loan balance must be 0.')
+    
+    # Check consistent savings for the last 6 months (for testing, check last 3 days)
+    three_days_ago = timezone.now() - timedelta(days=3)  # For testing, change to 6 months
+    savings_transactions = Transaction.objects.filter(
+        member_id=member, tr_account='savings', updated_date__gte=three_days_ago
+    )
+    if savings_transactions.count() < 6:
+        eligibility_results['qualified'] = False
+        eligibility_results['reasons'].append('Inconsistent savings.')
+    
+    # Check membership duration (for testing, check last 3 days)
+    if member.registration_date > (timezone.now() - timedelta(days=3)).date():
+        eligibility_results['qualified'] = False
+        eligibility_results['reasons'].append('Insufficient membership duration.')
+    
+    return eligibility_results
+
+
+
+@login_required
+def collaterals(request, member_id, loan_id):
+    member = get_object_or_404(Member, id=member_id)
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    
+    if request.method == 'POST':
+        form = CollateralForm(request.POST)
+        if form.is_valid():
+            collateral = form.save(commit=False)
+            collateral.loan = loan
+            collateral.save()
+            messages.success(request, 'Collateral added successfully.')
+            return redirect('loans:collaterals', member_id=member.id, loan_id=loan.id)
+    else:
+        form = CollateralForm()
+    
+    collaterals = Collateral.objects.filter(loan=loan)
+    return render(request, 'loans/collaterals.html', {'form': form, 'member': member, 'loan': loan, 'collaterals': collaterals})
+
+@login_required
+def guarantors(request, member_id, loan_id):
+    member = get_object_or_404(Member, id=member_id)
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    
+    if request.method == 'POST':
+        form = GuarantorForm(request.POST)
+        if form.is_valid():
+            guarantor_id = form.cleaned_data['guarantor_id']
+            guarantor_member = get_object_or_404(Member, id=guarantor_id)
+            
+            guarantor = form.save(commit=False)
+            guarantor.loan = loan
+            guarantor.guarantor = guarantor_member
+            guarantor.updated_by = request.user.username
+            guarantor.save()
+            
+            messages.success(request, 'Guarantor added successfully.')
+            return redirect('loans:guarantors', member_id=member.id, loan_id=loan.id)
+    else:
+        form = GuarantorForm()
+    
+    guarantors = Guarantor.objects.filter(loan=loan)
+    return render(request, 'loans/guarantors.html', {'form': form, 'member': member, 'loan': loan, 'guarantors': guarantors})
+
+
+
+@login_required
+def collateral_and_guarantor_check(request, member_id, loan_id):
+    member = get_object_or_404(Member, id=member_id)
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    collaterals = Collateral.objects.filter(loan=loan)
+    guarantors = Guarantor.objects.filter(loan=loan)
+    
+    total_collateral_value = collaterals.aggregate(total=Sum('value'))['total'] or 0
+    total_guarantor_value = guarantors.aggregate(total=Sum('guarantee_amount'))['total'] or 0
+    total_value = total_collateral_value + total_guarantor_value
+    
+    # Check if any guarantor's guarantee amount exceeds their free savings
+    insufficient_guarantors = []
+    for guarantor in guarantors:
+        # Calculate free savings for each guarantor
+        member_account = MemberAccount.objects.get(member=guarantor.guarantor)
+        savings = member_account.savings
+        #guaranteed_amount = Guarantor.objects.filter(guarantor=guarantor.guarantor).aggregate(total=Sum('guarantee_amount'))['total'] or 0
+        guaranteed_amount = Guarantor.objects.filter(guarantor=member, loan_status__in=['active', 'pending']).aggregate(total=Sum('guarantee_amount'))['total'] or 0
+        free_savings = savings - guaranteed_amount
+        
+        # Check if guarantee amount exceeds free savings
+        if guarantor.guarantee_amount > free_savings:
+            insufficient_guarantors.append({
+                'guarantor': guarantor.guarantor,
+                'guarantee_amount': guarantor.guarantee_amount,
+                'free_savings': free_savings,
+            })
+
+    context = {
+        'member': member,
+        'loan': loan,
+        'total_value': total_value,
+        'required_value': loan.loan_amount,
+        'collaterals': collaterals,
+        'guarantors': guarantors,
+        'is_sufficient': total_value >= loan.loan_amount and not insufficient_guarantors,
+        'insufficient_guarantors': insufficient_guarantors,
+    }
+        
+    return render(request, 'loans/collateral_and_guarantor_check.html', context)
+
+
+@login_required
+def release_loan(request, member_id, loan_id):
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    member = get_object_or_404(Member, id=member_id)
+
+    if request.method == 'POST':
+        cheque_number = request.POST.get('cheque_number')
+
+        if cheque_number:
+            member_account = get_object_or_404(MemberAccount, member=member)
+
+            # Deduct the loan amount from the member's loan balance
+            member_account.loan = F('loan') - loan.loan_amount
+            member_account.save()
+
+            # Record the transaction
+            Transaction.objects.create(
+                member_id=member,
+                tr_amount=loan.loan_amount,
+                tr_type='debit',  # Assuming releasing a loan is a debit transaction
+                tr_account='loan',  # Assuming 'loan' is the account type for loans
+                account_id=loan.id,
+                tr_mode_id=1,  # Default to Mpesa for now
+                tr_origin='working_capital',  # Update accordingly
+                tr_destn='member account',
+                updated_by=request.user.username,
+                updated_date=timezone.now()
+            )
+
+            # Save the cheque number or any other related info
+            loan.cheque_number = cheque_number
+            loan.save()
+
+            # Send SMS notification
+            phone_number = member.phone_number
+            message = f"Dear {member.first_name}, a loan of Ksh {loan.loan_amount} has been released to your account. Your new balance is Ksh {member_account.loan}."
+            # Assuming `send_notification` is a function to send SMS notifications
+            send_notification(phone_number, message)
+
+            # Redirect to loan summary
+            return redirect('loans:loan_summary', loan_id=loan.id, member_id=member.id)
+
+    return render(request, 'loans/release_loan.html', {'loan': loan})
+
+
+
+    
+
+@login_required
+def loan_summary(request, member_id, loan_id):
+    member = get_object_or_404(Member, id=member_id)
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    collaterals = Collateral.objects.filter(loan=loan)
+    guarantors = Guarantor.objects.filter(loan=loan)
+    
+    context = {
+        'loan': loan,
+        'collaterals': collaterals,
+        'guarantors': guarantors,
+    }
+    return render(request, 'loans/loan_summary.html', context)
+
+
+
+def view_loan_products(request):
+    loan_products = LoanProduct.objects.all()
+    return render(request, 'loans/view_loan_products.html', {'loan_products': loan_products})
+def view_issued_loans(request):
+    issued_loans = IssuedLoan.objects.all()
+    return render(request, 'loans/view_issued_loans.html', {'issued_loans': issued_loans})
+
+
+@login_required
+def delete_guarantor(request, member_id, loan_id, guarantor_id):
+    guarantor = get_object_or_404(Guarantor, id=guarantor_id)
+    guarantor.delete()
+    return redirect('loans:collateral_and_guarantor_check', member_id=member_id, loan_id=loan_id)
+
+@login_required
+def delete_collateral(request, member_id, loan_id, collateral_id):
+    collateral = get_object_or_404(Collateral, id=collateral_id)
+    collateral.delete()
+    return redirect('loans:collateral_and_guarantor_check', member_id=member_id, loan_id=loan_id)
+

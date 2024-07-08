@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Loan Eligibility Summary - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 px-4">
+        <h1 class="text-2xl font-bold mb-4">Loan Eligibility Summary</h1>
+        <p>Member ID: {{ member.id }}</p>
+        <p>Member Name: {{ member.first_name }} {{ member.last_name }}</p>
+        
+        {% if eligibility_results.qualified %}
+            <p class="text-green-500 font-semibold mt-4">Congratulations! You are eligible for the loan.</p>
+            <!-- Add button to proceed to collaterals -->
+            <a href="{% url 'loans:collaterals_member' member_id=member.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mt-4 inline-block">Proceed to Collaterals</a>
+        {% else %}
+            <p class="text-red-500 font-semibold mt-4">Sorry, you are not eligible for the loan due to the following reasons:</p>
+            <ul class="mt-2">
+                {% for reason in eligibility_results.reasons %}
+                    <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+            
+            <!-- Add button to search for another member -->
+            <a href="{% url 'loans:search_member_or_entity' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mt-4 inline-block">Search Another Member</a>
+        {% endif %}
+    </div>
+{% endblock %}

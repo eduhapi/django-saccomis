@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Member Details - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <h1>Member Details for {{ member.first_name }}</h1>
+    <p><strong>Member ID:</strong> {{ member.id }}</p>
+    <p><strong>Name:</strong> {{ member.name }}</p>
+    <p><strong>Savings Amount:</strong> {{ account.savings_amount }}</p>
+    <p><strong>Share Capital:</strong> {{ account.share_capital_amount }}</p>
+    <p><strong>Loan Repayment:</strong> {{ account.loan_repayment }}</p>
+    <a href="{% url 'eastakibacore:select_action' member.id %}" class="btn btn-primary">Perform Another Action</a>
+{% endblock %}

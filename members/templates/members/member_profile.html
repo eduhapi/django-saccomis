@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}
+    Member Profile - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 px-4">
+        <div class="text-center mb-8">
+            {% if member.client_photo %}
+                <img src="{{ member.client_photo.url }}" alt="Member Photo" class="w-48 h-48 object-cover rounded-full mx-auto">
+            {% else %}
+                <p>No photo found.</p>
+            {% endif %}
+            <h1 class="text-3xl font-bold mt-4">Member Profile</h1>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Personal Details Card -->
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Personal Details</h2>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Name:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.first_name }} {{ member.middle_name }} {{ member.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>National ID:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.member_national_id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Registration Date:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.registration_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Phone Number:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.phone_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Secondary Phone Number:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.secondary_phone_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Email:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.email }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Date of Birth:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.date_of_birth|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Gender:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.gender }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Client Type:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.client_type }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Marital Status:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.marital_status }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Address:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.address }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Town:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.town }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Profession:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.profession }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Spouse Name:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.spouse_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Spouse Address:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.spouse_address }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Updated At:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.updated_at|date:"F d, Y H:i" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Financial Details Card -->
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Financial Details</h2>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Loan Amount:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">Ksh {{ member.memberaccount.loan|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Savings Amount:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">Ksh {{ member.memberaccount.savings|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Share Capital Amount:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">Ksh {{ member.memberaccount.share_capital|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Employment Status:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ member.employment_status }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Employment Income:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">Ksh {{ member.employment_income|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Potential Loan:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">Ksh {{ potential_loan|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><strong>Signature:</strong></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if member.signature %}
+                                    <img src="{{ member.signature.url }}" alt="Signature" class="w-24 h-24 object-cover rounded-lg">
+                                {% else %}
+                                    <p>No signature found.</p>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Back to Members Button -->
+        <div class="text-center mt-8">
+            <a href="{% url 'view_members' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Back to Members
+            </a>
+        </div>
+    </div>
+{% endblock %}

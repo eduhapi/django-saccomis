@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}
+    Member Statement - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Member Statement</h1>
+    <h2>Member Details</h2>
+    <p>Member ID: {{ member.id }}</p>
+    <p>First Name: {{ member.first_name }}</p>
+    <p>Last Name: {{ member.last_name }}</p>
+    <p>Phone Number: {{ member.phone_number }}</p>
+    <!-- Add more member details as needed -->
+    
+    <h2>Statement</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in statement %}
+                <tr>
+                    <td>{{ transaction.date }}</td>
+                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.balance }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from decimal import Decimal
+from django.contrib.contenttypes.models import ContentType
+from .models import Member, MemberAccount, IssuedLoan, Transaction
+from .forms import DepositForm
+from .utils import send_notification
+
+@login_required
+def deposit(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    account = get_object_or_404(MemberAccount, member=member)
+
+    # Get the ContentType for Member
+    member_content_type = ContentType.objects.get_for_model(Member)
+
+    if request.method == 'POST':
+        form = DepositForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            account_type = form.cleaned_data['account_type']
+            external_code = form.cleaned_data['external_ref_code']
+
+            try:
+                # Deposit to savings or share capital
+                if account_type in ['savings', 'share_capital']:
+                    setattr(account, account_type, getattr(account, account_type) + amount)
+
+                # Deposit to loan repayment
+                elif account_type == 'loan':
+                    issued_loan = IssuedLoan.objects.filter(object_id=member.id, content_type=member_content_type, loan_status='active').first()
+                    if not issued_loan:
+                        messages.info(request, 'This member has no active loans. No changes were made.')
+                        return redirect('members:member_details', member_id=member_id)
+
+                    # Update the loan balance with the deposit amount
+                    if issued_loan.loan_balance + amount == 0:
+                        # Loan fully repaid
+                        issued_loan.loan_balance = Decimal('0.00')
+                        account.loan = Decimal('0.00')
+                        issued_loan.loan_status = 'settled'
+                    elif issued_loan.loan_balance + amount > 0:
+                        # Loan overpaid, set account balance to remaining amount after deductions
+                        issued_loan.loan_balance += amount
+                        account.loan += amount
+                    else:
+                        issued_loan.loan_balance += amount
+                        account.loan += amount
+
+                    issued_loan.save()
+
+                # Record the transaction
+                Transaction.objects.create(
+                    member_id=member,
+                    tr_amount=amount,
+                    external_ref_code=external_code,
+                    tr_type='credit',
+                    tr_account=account_type,
+                    account_id=1,  # Replace with actual account id
+                    tr_mode_id=1,  # Default to Mpesa for now
+                    tr_origin='member deposit',
+                    tr_destn='member account',
+                    updated_by=request.user.username,
+                    updated_date=timezone.now()
+                )
+
+                account.save()
+
+                # Send SMS notification
+                phone_number = member.phone_number
+                message = f"Dear {member.first_name}, a deposit of Ksh {amount} has been made to your {account_type} account. Your new balance is Ksh {getattr(account, account_type)}."
+                send_notification(phone_number, message)
+
+                messages.success(request, f'Deposit of Ksh {amount} successfully credited to {member.first_name} {member.last_name}.')
+                return redirect('members:member_details', member_id=member_id)
+            except Exception as e:
+                messages.error(request, f'Error processing deposit: {str(e)}')
+        else:
+            # Collect form errors
+            for field in form:
+                for error in field.errors:
+                    messages.error(request, f'{field.label}: {error}')
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        form = DepositForm()
+
+    return render(request, 'deposit.html', {'form': form, 'member': member})

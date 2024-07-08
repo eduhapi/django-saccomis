@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Member Details</h2>
+    <div class="bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">Member ID: <span class="font-bold">{{ member.id }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">First Name: <span class="font-bold">{{ member.first_name }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Last Name: <span class="font-bold">{{ member.last_name }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Savings Amount: <span class="font-bold">{{ savings_amount|intcomma }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Loan Balance: <span class="font-bold">{{ loan_amount|intcomma }}</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-2">Guaranteed Amount: <span class="font-bold">{{ guaranteed_amount|intcomma }}</span></p>
+    </div>
+    <a href="{% url 'loans:start_application_member' member.id %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Start Application</a>
+</div>
+{% endblock %}

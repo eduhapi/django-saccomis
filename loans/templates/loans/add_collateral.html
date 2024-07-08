@@ -1,0 +1,10 @@
+<!-- loans/templates/loans/add_collateral.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h2>Add Collateral</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Next</button>
+</form>
+{% endblock %}

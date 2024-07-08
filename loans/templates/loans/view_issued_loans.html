@@ -1,0 +1,49 @@
+
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Transactions - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-4">Issued Loans</h1>
+        <div class="overflow-x-auto">
+            <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        
+                        <th class="px-4 py-2">Loan Ref Code</th>
+                        <th class="px-4 py-2">Amount</th>
+                        <th class="px-4 py-2">Installment</th>
+                        <th class="px-4 py-2">Loan Purpose</th>
+                        <th class="px-4 py-2">Grace Period</th>
+                        <th class="px-4 py-2">Repayment starts</th>
+                        <th class="px-4 py-2">Installment every</th>
+                        <th class="px-4 py-2">Member Id</th>
+                        <th class="px-4 py-2">Processed By</th>
+                        <th class="px-4 py-2">ProductID</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for issued_loan in issued_loans %}
+                        <tr class="border-b">
+                            <td class="px-4 py-2">{{  issued_loan.loan_ref_id }}</td>
+                            <td class="px-4 py-2">{{ issued_loan.loan_amount| intcomma}}</td>
+                            <td class="px-4 py-2">{{ issued_loan.installment_amount| intcomma }}</td>
+                            <td class="px-4 py-2">{{ issued_loan.loan_purpose}}</td>
+                            <td class="px-4 py-2">{{ issued_loan.grace_period }}</td>
+                            <td class="px-4 py-2">{{ issued_loan.repayments_start_date }}</td>
+                            <td class="px-4 py-2">{{ issued_loan.installment_every}}</td>
+                            <td class="px-4 py-2">{{ issued_loan.member_id }}</td>
+                            <td class="px-4 py-2">{{ issued_loan.processed_by_id}}</td>
+                            <td class="px-4 py-2">{{ issued_loan.loan_product_id }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+	

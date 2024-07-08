@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Loan Balances Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Loan Balances Report</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Principal</th>
+                <th>Installment</th>
+                <th>Last Repayment Date</th>
+                <th>Remaining Repayment Period</th>
+                <th>Current Loan Balance</th>
+                <th>Arrears Amount</th>
+                <th>Arrears Period</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for balance in loan_balances %}
+                <tr>
+                    <td>{{ balance.id }}</td>
+                    <td>{{ balance.name }}</td>
+                    <td>{{ balance.phone }}</td>
+                    <td>{{ balance.principal|floatformat:2 }}</td>
+                    <td>{{ balance.installment|floatformat:2 }}</td>
+                    <td>{{ balance.last_repayment_date }}</td>
+                    <td>{{ balance.remaining_repayment_period }}</td>
+                    <td>{{ balance.current_loan_balance|floatformat:2 }}</td>
+                    <td>{{ balance.arrears_amount|floatformat:2 }}</td>
+                    <td>{{ balance.arrears_period }}</td>
+                    <td>{{ balance.type }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

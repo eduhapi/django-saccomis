@@ -1,0 +1,13 @@
+2024-06-23 10:00:43,652 - Loan balances updated successfully.
+2024-06-23 10:01:13,137 - Loan balances updated successfully.
+2024-06-23 10:03:11,517 - Loan balances updated successfully.
+2024-06-23 10:05:50,711 - Loan balances updated successfully.
+2024-06-23 10:07:19,817 - Loan balances updated successfully.
+2024-06-23 10:19:21,689 - Loan balances updated successfully.
+2024-06-23 10:20:19,603 - Loan balances updated successfully.
+2024-06-23 10:32:32,621 - ERROR - Error updating loan balances: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+2024-06-23 10:33:43,690 - ERROR - Error updating loan balances: unsupported operand type(s) for *: 'decimal.Decimal' and 'float'
+2024-06-23 10:34:02,065 - INFO - Updated MemberAccount ID 1: New Loan Balance = -102998.9920
+2024-06-23 10:34:02,065 - INFO - Updated MemberAccount ID 3: New Loan Balance = -1020.1000
+2024-06-23 10:34:02,065 - INFO - Updated MemberAccount ID 4: New Loan Balance = -1040.6030
+2024-06-23 10:34:02,065 - INFO - Loan balances updated successfully.

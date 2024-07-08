@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View SMS Logs</title>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4 text-primary">SMS Logs</h1>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Phone Number</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in sms_logs %}
+                    <tr>
+                        <td>{{ log.phone_number }}</td>
+                        <td>{{ log.message }}</td>
+                        <td>{{ log.status }}</td>
+                        <td>{{ log.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center my-4">
+            <a href="{% url 'sms:compose_sms' %}" class="btn btn-primary">Compose New SMS</a>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

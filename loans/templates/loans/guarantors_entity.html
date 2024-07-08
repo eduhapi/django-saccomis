@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Add Guarantor for {{ entity.entity_name }}'s Loan</h2>
+    <form method="post" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mt-4 inline-block">Add Guarantor</button>
+    </form>
+
+    <h3 class="text-lg font-semibold mb-2">Existing Guarantors</h3>
+    <ul class="mb-4">
+        {% for guarantor in guarantors %}
+        <li class="mb-2">
+            <span class="text-gray-700">{{ guarantor.guarantor.first_name }} {{ guarantor.guarantor.last_name }}: Ksh {{ guarantor.guarantee_amount }} - {{ guarantor.loan_status }}</span>
+            <a href="{% url 'loans:delete_guarantor_entity' entity.id loan.id guarantor.id %}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-md ml-2">[X]</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <button onclick="window.location.href='{% url 'loans:collateral_and_guarantor_check_entity' entity.id loan.id %}'" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Next</button>
+</div>
+{% endblock %}

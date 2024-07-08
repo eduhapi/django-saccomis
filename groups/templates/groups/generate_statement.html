@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Generate Statement - AKIBANIPESA{% endblock %}
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h1 class="text-2xl font-bold mb-4">Generate Statement</h1>
+    <form method="post" class="bg-white p-4 rounded shadow">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate</button>
+    </form>
+</div>
+{% endblock %}

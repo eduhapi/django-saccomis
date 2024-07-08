@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Select Action - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 px-4">
+        <h1 class="text-2xl font-bold mb-4">Select Action for {{ entity.entity_name }}</h1>
+        <form method="POST" action="{% url 'groups:update_entity_accounts' entity.id %}" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
+            {% csrf_token %}
+            <input type="hidden" name="entity_id" value="{{ entity.id }}">
+            <div class="mb-4">
+                <label for="action" class="block text-sm font-medium text-gray-700">Select Action</label>
+                <select class="form-select mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="action" name="action">
+                    <option value="deposit">Deposit</option>
+                    <option value="withdraw">Withdraw</option>
+                    <option value="transfer">Transfer</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Submit</button>
+        </form>
+    </div>
+{% endblock %}

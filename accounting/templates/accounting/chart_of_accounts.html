@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Chart of Accounts - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h1 class="text-2xl font-bold mb-4">Chart of Accounts</h1>
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Account Code</th>
+                    <th scope="col">Account Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td>{{ account.account_code }}</td>
+                    <td>{{ account.account_name }}</td>
+                    <td>{{ account.account_type }}</td>
+                    <td>{{ account.account_balance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

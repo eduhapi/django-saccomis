@@ -1,0 +1,11 @@
+# .gitignore
+*.pyc
+__pycache__/
+db.sqlite3
+/staticfiles/
+/photos/
+/static/
+/client_photos/
+/signatures/
+.env
+myenv/

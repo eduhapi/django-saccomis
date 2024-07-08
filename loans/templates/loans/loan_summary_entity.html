@@ -1,0 +1,43 @@
+
+<!-- loans/templates/loans/loan_summary.html -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Loan Summary</h2>
+    <p>Loan Ref ID: {{ loan.loan_ref_id }}</p>
+    <p>Entity ID: {{ loan.object_id }}</p>
+    <p>Loan Amount: {{ loan.loan_amount }}</p>
+    <p>Repayment Period: {{ loan.repayment_period }}</p>
+    <p>Repayment Start Date: {{ loan.repayments_start_date }}</p>
+    <p>Installment Amount: {{ loan.installment_amount }}</p>
+    <p>Processed By: {{ loan.processed_by.username }}</p>
+
+    <h3 class="text-lg font-semibold mb-2">Collaterals</h3>
+    <ul class="mb-4">
+        {% for collateral in collaterals %}
+            <li class="mb-2">{{ collateral.collateral_type }}:
+                {% if collateral.document_ref_no %}
+                    {{ collateral.document_ref_no }}
+                {% elif collateral.guarantee_amount %}
+                    {{ collateral.guarantee_amount }}
+                {% else %}
+                    No collateral information available
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="text-lg font-semibold mb-2">Guarantors</h3>
+    <ul class="mb-4">
+        {% for guarantor in guarantors %}
+            <li class="mb-2">
+                Guarantor: {{ guarantor.guarantor.first_name }} {{ guarantor.guarantor.last_name }}<br>
+                Guarantee Amount: {{ guarantor.guarantee_amount }}<br>
+                Loan Status: {{ guarantor.loan_status }}<br>
+                Updated At: {{ guarantor.updated_at }}<br>
+                Updated By: {{ guarantor.updated_by }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

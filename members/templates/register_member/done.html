@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-6">Registration Complete</h1>
+    <p> The Member has been registered successfully.</p>
+    <p>Account details:</p>
+    <ul>
+        <li>Member Name: {{ member.first_name }}{{ member.last_name }}</li>
+        <li>Membership Number: {{ account.member_id }}</li>
+        <li>Share Capital: {{ account.share_capital }}</li>
+        <li>Savings: {{ account.savings }}</li>
+        <li>Registration Fee: {{ account.reg_fee }}</li>
+        <li>Loan balance: {{ account.loan }}</li>
+    </ul>
+    <p>Next of Kin: {{ next_of_kin.full_name }}</p>
+</div>
+{% endblock %}

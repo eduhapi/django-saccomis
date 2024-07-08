@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Member Details</h1>
+<p>Member ID: {{ member.id }}</p>
+<p>First Name: {{ member.first_name }}</p>
+<p>Last Name: {{ member.last_name }}</p>
+<p>Savings Amount: {{ member.savings }}</p>
+<p>Guaranteed Amount: {{ member.guaranteed_amount }}</p>
+<button onclick="window.location.href='{% url 'loans:loan_eligibility' member.id %}'">Start Application</button>
+{% endblock %}

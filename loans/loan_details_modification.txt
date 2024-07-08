@@ -1,0 +1,88 @@
+i have a model named saccocharge 
+
+class SaccoCharge(models.Model):
+    CHARGE_TYPE_CHOICES = [
+        ('percentage', 'Percentage'),
+        ('amount', 'Amount'),
+    ]
+
+    charge_name = models.CharField(max_length=255)
+    charge_type = models.CharField(max_length=10, choices=CHARGE_TYPE_CHOICES)
+    charge_value = models.DecimalField(max_digits=10, decimal_places=2)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.charge_name
+
+i have entered my sacco charges as 
+loan_interest	Percentage	1.00	
+loan_charge_un_100000	Amount	1500.00
+loan_charge_ov_100000	Amount	2000.00	
+loan_boost_charge	Percentage	1.00	
+loan_top_up_charge	Percentage	10.00
+
+in the loan details i want us to update view sacco charges to apply the sacco charges as follows
+all loans to use the loan_interest on calculating installments
+if a loan_amount(which is actually the principal) is less 100k, apply loan_charge_un_100000
+if a loan_amount(which is actually the principal) is over 100k, apply loan_charge_ov_100000
+if the average savings of the last 2 transactions is 40% more than the average savings of the last 6 transactions in the entityaccountsledger, then apply loan_boost_charge to the average of the last2 months
+if the entity has an existing unsettled loan, then apply loan_top_up_charge to the loan_balance.
+
+Now substract all these charges from the loan_amount and that is what we will actually give them, we will record this amount in the sacco accountsledger(id,account_id,description,amount,transaction_type,transaction_date,updated_at,updated_by_id)
+ as debit and we will debit the saccoaccount(id,account_code,account_balance,updated_at,updated_by_id)that is lebeled with code 4001 with the amount-this  is our liability account for loans.
+We will also credit our saccoaccount with code 2001 which is our income account for fees_fines and penalties.
+
+and obviously we will update the issued_loan table with the loan details and also the entityaccountsledger(id,tr_amount,updated_at,entity_id,updated_by_id,external_ref_code,sacco_ref_code,tr_account,tr_destn,tr_mode_id,tr_origin,tr_type)
+with the transaction which will be a debit to their loan account.
+Update this view to implement the functionalities
+@login_required
+def loan_details_entity(request, entity_id):
+    entity = get_object_or_404(Entity, id=entity_id)
+    entity_account = get_object_or_404(EntityAccount, entity=entity)
+
+    if request.method == 'POST':
+        form = IssueLoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.content_type = ContentType.objects.get_for_model(entity)
+            loan.object_id = entity.id
+
+            loan_amount = form.cleaned_data['loan_amount']
+            repayment_period = form.cleaned_data['repayment_period']
+
+            processing_fee = Decimal('1500')
+            net_loan_amount = loan_amount - processing_fee
+
+            interest_rate = Decimal('0.01')
+            months = Decimal(repayment_period)
+            numerator = loan_amount * interest_rate * (1 + interest_rate) ** months
+            denominator = (1 + interest_rate) ** months - 1
+            installment_amount = numerator / denominator
+
+            eligibility_results = check_loan_eligibility_entity(entity, net_loan_amount)
+
+            if eligibility_results['qualified']:
+                loan.installment_amount = installment_amount
+                loan.loan_ref_id = generate_unique_loan_ref_id()
+                loan.processed_by = request.user
+                loan.loan_amount = loan_amount
+                loan.loan_balance = loan_amount
+                loan.save()
+
+                return redirect('loans:collaterals_entity', entity_id=entity.id, loan_id=loan.id)
+            else:
+                context = {
+                    'entity': entity,
+                    'loan_amount': loan_amount,
+                    'eligibility_results': eligibility_results,
+                }
+                return render(request, 'loans/loan_eligibility_entity.html', context)
+    else:
+        form = IssueLoanForm()
+
+    return render(request, 'loans/loan_details.html', {'form': form, 'entity': entity})
+
+
+
+

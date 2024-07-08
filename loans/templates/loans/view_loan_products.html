@@ -1,0 +1,45 @@
+
+
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Transactions - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-4">Loan Products</h1>
+        <div class="overflow-x-auto">
+            <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        
+                        <th class="px-4 py-2">Loan ID</th>
+                        <th class="px-4 py-2">Name</th>
+                        <th class="px-4 py-2">Savings Multiplier</th>
+                        <th class="px-4 py-2">Max repayment Period</th>
+                        <th class="px-4 py-2">Interest Rate</th>
+                        <th class="px-4 py-2">Minimum Membership Age</th>
+                   
+                        
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for loan_product in loan_products %}
+                        <tr class="border-b">
+                            <td class="px-4 py-2">{{  loan_product.id	 }}</td>
+                            <td class="px-4 py-2">{{ loan_product.name}}</td>
+                            <td class="px-4 py-2">{{ loan_product.savings_multiplier}}</td>
+                            <td class="px-4 py-2">{{ loan_product.interest_rate }}</td>
+                            <td class="px-4 py-2">{{ loan_product.max_repayment_period}}</td>
+                            <td class="px-4 py-2">{{ loan_product.min_membership_age	}}</td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endblock %}
+
+	

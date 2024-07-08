@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}
+    Member Statement Search - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Statement Details</h1>
+    <form method="POST" action="{% url 'reports:member_statement' %}" class="mb-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Generate Statement</button>
+    </form>
+</div>
+{% endblock %}

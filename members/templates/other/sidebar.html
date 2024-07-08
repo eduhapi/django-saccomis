@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}AKIBANIPESA{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'eastakibacore/css/styles.css' %}">
+    <style>
+        /* Add your custom styles here */
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 sidebar">
+                <h2>Menu</h2>
+                <ul class="sidebar-menu">
+                    <li>
+                        <span class="group-header">Member Management</span>
+                        <ul class="group-links">
+                            <li><a href="{% url 'register_member' %}">Add Member</a></li>
+                            <li><a href="{% url 'view_members' %}">View Members</a></li>
+                            <li><a href="#">Edit Member</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span class="group-header">Loans Management</span>
+                        <ul class="group-links">
+                            <li><a href="#">Add Loan Product</a></li>
+                            <li><a href="#">Issue Loan</a></li>
+                            <li><a href="#">View Loan Products</a></li>
+                            <li><a href="#">View Loan Repayments</a></li>
+                            <li><a href="#">View Loan Defaulters</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span class="group-header">Administration</span>
+                        <ul class="group-links">
+                            <li><a href="#">View Branches</a></li>
+                            <li><a href="#">Add Expense</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span class="group-header">Finance Management</span>
+                        <ul class="group-links">
+                            <li><a href="#">Link Bank Account</a></li>
+                            <li><a href="#">Create Imprest</a></li>
+                            <li><a href="#">Create Expense</a></li>
+                            <li><a href="#">Pay Supplier</a></li>
+                        </ul>
+                    </li>
+                    <!-- Add more group headers and links as needed -->
+                </ul>
+            </div>
+            <div class="col-md-9">
+                {% block content %}
+                <!-- Main content goes here -->
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".group-header").click(function(){
+                $(this).next(".group-links").slideToggle();
+            });
+        });
+    </script>
+</body>
+</html>

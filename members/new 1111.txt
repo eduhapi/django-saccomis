@@ -1,0 +1,69 @@
+@login_required
+def deposit(request, member_id):
+    member = get_object_or_404(Member, id=member_id)
+    account = get_object_or_404(MemberAccount, member=member)
+    #issued_loan = IssuedLoan.objects.filter(member=member, loan_status='active').first()  # Assuming only one active loan per member
+    active_loan_guarantors = Guarantor.objects.filter(guarantor=member, loan_status='active').first()
+    active_loan_collaterals = Collateral.objects.filter(collateral=member, loan_status='active').first()
+    if request.method == 'POST':
+        form = DepositForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            account_type = form.cleaned_data['account_type']
+            external_code = form.cleaned_data['external_ref_code']
+            
+            # Update the appropriate account balance based on the account type
+            if account_type == 'savings':
+                account.savings += amount
+            elif account_type == 'share_capital':
+                account.share_capital += amount
+            #elif account_type == 'loan' and issued_loan:
+            elif account_type == 'loan' :
+                # Update the loan balance with the deposit amount
+               # issued_loan.balance += amount
+                 account.loan += amount  # Since account.loan is negative, adding amount reduces the loan balance
+                
+                # Apply 1% interest on the new loan balance
+                #issued_loan.balance *= Decimal('1.01')
+                 account.loan *= Decimal('1.01')
+                
+                 if account.loan <= 0:
+                    #issued_loan.loan_status = 'settled'
+                    (
+                    active_loan_guarantors.loan_status = 'settled'
+                    or
+                    active_loan_collaterals.loan_status = 'settled')
+                    
+            # Record the transaction
+            Transaction.objects.create(
+                member_id=member,
+                tr_amount=amount,
+                external_ref_code=external_code,
+                tr_type='credit',
+                tr_account=account_type,
+                account_id=1,  # Replace with actual account id
+                tr_mode_id=1,  # Default to Mpesa for now
+                tr_origin = 'member deposit',
+                tr_destn='member account',
+                updated_by=request.user.username,
+                updated_date=timezone.now()
+            )
+            
+            account.save()
+           # if issued_loan:
+                #issued_loan.save()
+            
+            # Send SMS notification
+            phone_number = member.phone_number
+            message = f"Dear {member.first_name}, a deposit of Ksh {amount} has been made to your {account_type} account. Your new balance is Ksh {getattr(account, account_type)}."
+            send_notification(phone_number, message)
+            
+            messages.success(request, f'Deposit of Ksh {amount} successfully credited to {member.first_name} {member.last_name}.')
+            return redirect('members:member_details', member_id=member_id)
+        else:
+            # Print form errors for debugging
+            print(form.errors)
+    else:
+        form = DepositForm()
+    
+    return render(request, 'deposit.html', {'form': form, 'member': member})

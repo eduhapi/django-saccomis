@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Registration Complete - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h1 class="text-2xl font-bold mb-4">Registration Complete</h1>
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold">Entity Details</h2>
+        <p><strong>Entity Name:</strong> {{ entity.entity_name }}</p>
+        <p><strong>Registration Certificate Number:</strong> {{ entity.reg_cert_number }}</p>
+        <p><strong>Entity Type:</strong> {{ entity.get_entity_type_display }}</p>
+        <p><strong>Annual Income:</strong> {{ entity.annual_income }}</p>
+        <p><strong>Head Office Address:</strong> {{ entity.head_office_address }}</p>
+        <p><strong>Office Phone Number:</strong> {{ entity.office_phone_number }}</p>
+        <p><strong>Email:</strong> {{ entity.email }}</p>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mt-4">
+        <h2 class="text-xl font-semibold">Entity Account</h2>
+        <p><strong>Initial Savings:</strong> Ksh {{ account.savings }}</p>
+        <p><strong>Initial Share Capital:</strong> Ksh {{ account.share_capital }}</p>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow mt-4">
+        <h2 class="text-xl font-semibold">Entity Officials</h2>
+        <ul>
+            {% for official in officials %}
+            <li class="border-b py-2">
+                <p><strong>Name:</strong> {{ official.name }}</p>
+                <p><strong>Designation:</strong> {{ official.designation }}</p>
+                <p><strong>National ID:</strong> {{ official.national_id }}</p>
+                <p><strong>Phone Number:</strong> {{ official.phone_number }}</p>
+                {% if official.signature %}
+                <p><strong>Signature:</strong> <img src="{{ official.signature.url }}" alt="Signature" class="h-12"></p>
+                {% endif %}
+                {% if official.photo %}
+                <p><strong>Photo:</strong> <img src="{{ official.photo.url }}" alt="Photo" class="h-12"></p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

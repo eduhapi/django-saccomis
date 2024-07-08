@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Loan Defaulters</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Loan Ref ID</th>
+            <th>Member</th>
+            <th>Loan Amount</th>
+            <th>Repayment Period</th>
+            <th>Repayments Start Date</th>
+            <th>Installment Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for loan in defaulters %}
+        <tr>
+            <td>{{ loan.loan_ref_id }}</td>
+            <td>{{ loan.member.first_name }} {{ loan.member.last_name }}</td>
+            <td>{{ loan.loan_amount }}</td>
+            <td>{{ loan.repayment_period }}</td>
+            <td>{{ loan.repayments_start_date }}</td>
+            <td>{{ loan.installment_amount }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="?download=true&format=pdf" class="btn btn-primary">Download PDF</a>
+<a href="?download=true&format=excel" class="btn btn-primary">Download Excel</a>
+{% endblock %}
