@@ -1,12 +1,1 @@
-now lets shift focus to accounting, i have an app named accounting i want to create views and templates for reconciliation, the idea is,
- I want to use mpesa statements which usually have the fields receipt no(unique mpesa ref code), completion date(datetime which the transaction was made),
- paid in(actual amount), a/c no(account reference which could be a member id, entity id, or national id).  then i will select the excel sheet with these details,
- and upload them and select the priority i.e, savings first, loan repayment first, and then submit, and then python will read the excel file, loop through all the 
-rows and make transactions approprietly i.e if i selected savings first, python will do a check to see if they have an active loan on issuedloan if they have an active loan deduct the minimum_savings_amount(assume 1,000) from the amount specified in the paid in column
- and the rest will be used to update the loan_balance in issedloan and then update both entries( for loan and savings) in the appropriate ledger if we selected loan repayment first, we do the opposite, where by we first deduct the installment specified on issuedloans and the rest to savings
-ofcourse if the amount we are trying to deduct is more than the one paid in, we deduct everything from paid in and update the priority and the other one doesnt get updated we then update the
-appropriate ledger i.e we search for the a/c no specified in the column a/c no and check if its in members, if we did not find it we search in entity, and update 
- memberaccountsledger or entityaccountsledger as appropriate, if the a/c no specified cant be found on either entity or member tables then we will add this entry to mpesareconciliatonledger model on accounting
-which with the details there and mark it as failed otherwise if everything was successful we mark the entry as reconciled. if a member/ entity has no loan, all the paidin amount is updated in savings
 
-generate code for this mpesareconciliationledger, templates and views to handle this
