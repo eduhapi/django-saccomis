@@ -1,0 +1,42 @@
+<!-- loan_repayment.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Loan Repayment - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    {% include 'more_menu_members.html' %}
+    <div class="container mx-auto mt-8 px-4 bg-light-gray p-4 rounded shadow">
+        <h2 class="text-2xl font-bold mb-4">Loan Repayment for  {{ member.first_name }} </h2>
+
+        <!-- Message display section -->
+        {% if messages %}
+            <div class="container mt-4">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="amount" class="block text-sm font-medium text-gray-700">Repayment Amount</label>
+                <input type="text" class="form-control mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="amount" name="amount">
+            </div>
+            <div class="mb-4">
+                <label for="external_ref_code" class="block text-sm font-medium text-gray-700">External Reference Code</label>
+                <input type="text" class="form-control mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="external_ref_code" name="external_ref_code">
+            </div>
+            <button type="submit" class="btn btn-primary">Repay Loan</button>
+        </form>
+    </div>
+{% endblock %}

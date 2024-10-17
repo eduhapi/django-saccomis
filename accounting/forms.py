@@ -39,3 +39,23 @@ class SaccoChargeForm(forms.ModelForm):
     class Meta:
         model = SaccoCharge
         fields = ['charge_name', 'charge_type', 'charge_value']
+
+from django import forms
+from .models import MpesaReconciliationLedger
+
+class MpesaReconciliationForm(forms.Form):
+    file = forms.FileField()
+    priority = forms.ChoiceField(choices=MpesaReconciliationLedger.RECEIPT_CHOICES)
+# forms.py
+from django import forms
+
+class RawStatementUploadForm(forms.Form):
+    file = forms.FileField(label='Upload Raw Statement')
+# forms.py
+from django import forms
+
+class DailyAccountsPostingForm(forms.Form):
+    date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}))
+
+
+

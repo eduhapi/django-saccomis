@@ -25,6 +25,9 @@ class LoanProduct(models.Model):
 
 class IssuedLoan(models.Model):
     LOAN_STATUSES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
         ('active', 'Active'),
         ('settled', 'Settled'),
         ('overdue', 'Overdue')
@@ -44,8 +47,9 @@ class IssuedLoan(models.Model):
     installment_every = models.CharField(max_length=20, default='1 month')
     processed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created_at = models.DateField(default=timezone.now)
-    loan_status = models.CharField(max_length=10, choices=LOAN_STATUSES, default='active')
+    loan_status = models.CharField(max_length=10, choices=LOAN_STATUSES, default='pending')
     updated_at = models.DateField(default=timezone.now)
+    comments = models.TextField(null=True, blank=True)
 
 
 class Collateral(models.Model):
@@ -64,6 +68,7 @@ class Collateral(models.Model):
     document_ref_no = models.CharField(max_length=100, null=True, blank=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     loan_status = models.CharField(max_length=10, choices=COLLATERAL_STATUSES, default='active')
+    document = models.FileField(upload_to='collateral_documents/', null=True, blank=True)  # New field
 
 class Guarantor(models.Model):
     GUARANTOR_STATUSES = [

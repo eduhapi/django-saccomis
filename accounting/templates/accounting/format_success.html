@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Success - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Format Success</h2>
+    <div class="alert alert-success" role="alert">
+        <p>Excel sheet has been filtered and formatted successfully.</p>
+        <p>Download the formatted sheet: <a href="{% url 'accounting:download_filtered_statement' filename=filename %}">Download</a></p>
+    </div>
+</div>
+{% endblock %}

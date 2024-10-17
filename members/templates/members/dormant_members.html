@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Dormant Members</h2>
+    <ul>
+        {% for member in dormant_members %}
+        <li>{{ member.first_name }} {{ member.last_name }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

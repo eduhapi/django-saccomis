@@ -5,19 +5,33 @@
 {% endblock %}
 
 {% block content %}
+    {% include 'more_menu_members.html' %}
     <div class="container mx-auto mt-8 px-4">
+        <!-- Message display section -->
+        {% if messages %}
+            <div class="container mt-4">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
         <h1 class="text-2xl font-bold mb-4">Transfer from {{ member.first_name }} {{ member.last_name }}</h1>
         <form method="POST" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
             {% csrf_token %}
-			<div class="mb-4">
+            <div class="mb-4">
                 <label for="transfer_from_account_type" class="block text-sm font-medium text-gray-700">Transfer from Account Type</label>
-                <select class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="transfer_from_account_typee" name="transfer_from_account_type">
+                <select class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="transfer_from_account_type" name="transfer_from_account_type">
                     <option value="savings">Savings</option>
                     <option value="share_capital">Share Capital</option>
-                    <option value="loan">Loan Repayment</option>
+                    
                 </select>
             </div>
-			<div class="mb-4">
+            <div class="mb-4">
                 <label for="transfer_to_account_type" class="block text-sm font-medium text-gray-700">Transfer to Account Type</label>
                 <select class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="transfer_to_account_type" name="transfer_to_account_type">
                     <option value="savings">Savings</option>
@@ -25,14 +39,13 @@
                     <option value="loan">Loan Repayment</option>
                 </select>
             </div>
-           
             <div class="mb-4">
                 <label for="recipient_id" class="block text-sm font-medium text-gray-700">Recipient ID</label>
-                <input type="text" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="recipient_id" name="recipient_id">
+                <input type="text" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="recipient_id" name="recipient_id" style="max-width: 300px;">
             </div>
-			 <div class="mb-4">
+            <div class="mb-4">
                 <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
-                <input type="text" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="amount" name="amount">
+                <input type="text" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" id="amount" name="amount" style="max-width: 300px;">
             </div>
             <button type="submit" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700">Transfer</button>
         </form>

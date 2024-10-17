@@ -47,3 +47,4 @@ def generate_excel_report(loan_balances, filename):
 
     wb.save(response)
     return response
+

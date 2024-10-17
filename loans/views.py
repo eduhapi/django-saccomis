@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import LoanProduct, IssuedLoan, Collateral, Guarantor
 from .forms import LoanProductForm, MemberSearchForm, IssueLoanForm, CollateralForm, LoanEligibilityForm, CollateralForm, GuarantorForm
-from members.models import Member, MemberAccount, Transaction  # Assuming you have a Member model
 from groups.models import Entity, EntityAccount, EntityAccountsLedger  # Assuming you have an Entity model
 import datetime
 from django.contrib.auth.decorators import login_required
@@ -17,7 +16,6 @@ from decimal import Decimal, getcontext
 
 # Set precision for Decimal calculations
 getcontext().prec = 28
-
 
 @login_required
 def search_member_or_entity(request):
@@ -36,18 +34,19 @@ def search_member_or_entity(request):
                     member = Member.objects.get(id=int(member_or_entity_id))
                     account = MemberAccount.objects.get(member=member)
                     savings_amount = account.savings
-                    loan_amount = account.loan
+                    #loan_amount = account.loan
                     guaranteed_amount = Guarantor.objects.filter(guarantor=member).aggregate(total=Sum('guarantee_amount'))['total'] or 0
                 except Member.DoesNotExist:
-                    form.add_error('member_id', 'Member not found.')
+                    messages.warning(request, f"Member not found matching '{member_or_entity_id}'.")
             else:
                 try:
                     entity = Entity.objects.get(id=member_or_entity_id)
                     entity_account = EntityAccount.objects.get(entity=entity)
                     savings_amount = entity_account.savings
-                    loan_amount = entity_account.loan
+                    #loan_amount = entity_account.loan
                 except Entity.DoesNotExist:
-                    form.add_error('member_id', 'Entity not found.')
+                    messages.warning(request, f"Entity not found matching '{member_or_entity_id}'.")
+
     else:
         form = MemberSearchForm()
 
@@ -96,8 +95,18 @@ def start_application_member(request, member_id):
 def start_application_entity(request, entity_id):
     entity = get_object_or_404(Entity, id=entity_id)
     return render(request, 'loans/start_application_entity.html', {'entity': entity})
-
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from decimal import Decimal
+from members.models import Member, MemberAccount, MemberAccountsLedger
+from loans.models import IssuedLoan, Collateral, Guarantor
+from accounting.models import SaccoCharge, SaccoAccountsLedger, SaccoAccount
+from .forms import IssueLoanForm
+from .utils import generate_unique_loan_ref_id
+from datetime import timedelta
+from django.db.models import Sum
 
 @login_required
 def loan_details_member(request, member_id):
@@ -114,42 +123,181 @@ def loan_details_member(request, member_id):
             loan_amount = form.cleaned_data['loan_amount']
             repayment_period = form.cleaned_data['repayment_period']
 
-            processing_fee = Decimal('1500')
-            net_loan_amount = loan_amount - processing_fee
+            # Fetch SACCO charges
+            loan_interest = SaccoCharge.objects.get(charge_name='loan_interest')
+            loan_charge_un_100000 = SaccoCharge.objects.get(charge_name='loan_charge_un_100000')
+            loan_charge_ov_100000 = SaccoCharge.objects.get(charge_name='loan_charge_ov_100000')
+            loan_boost_charge = SaccoCharge.objects.get(charge_name='loan_boost_charge')
+            loan_top_up_charge = SaccoCharge.objects.get(charge_name='loan_top_up_charge')
 
-            interest_rate = Decimal('0.01')
+            # Calculate interest
+            interest_rate = loan_interest.charge_value / 100
             months = Decimal(repayment_period)
             numerator = loan_amount * interest_rate * (1 + interest_rate) ** months
             denominator = (1 + interest_rate) ** months - 1
             installment_amount = numerator / denominator
 
-            eligibility_results = check_loan_eligibility_member(member, net_loan_amount)
-
-            if eligibility_results['qualified']:
-                loan.installment_amount = installment_amount
-                loan.loan_ref_id = generate_unique_loan_ref_id()
-                loan.processed_by = request.user
-                loan.loan_amount = loan_amount
-                loan.save()
-
-                return redirect('loans:collaterals', member_id=member.id, loan_id=loan.id)
+            # Determine processing fee based on loan amount
+            if loan_amount < 100000:
+                processing_fee = loan_charge_un_100000.charge_value
             else:
-                context = {
+                processing_fee = loan_charge_ov_100000.charge_value
+
+            # Calculate loan boost charge if applicable
+            six_months_ago = timezone.now() - timedelta(days=180)
+            two_months_ago = timezone.now() - timedelta(days=60)
+
+            last_six_months_savings = MemberAccountsLedger.objects.filter(
+                member_id=member.id, tr_account='savings', updated_at__gte=six_months_ago
+            ).order_by('-updated_at')[:6]
+
+            last_two_months_savings = MemberAccountsLedger.objects.filter(
+                member_id=member.id, tr_account='savings', updated_at__gte=two_months_ago
+            ).order_by('-updated_at')[:2]
+
+            if last_six_months_savings and last_two_months_savings:
+                avg_savings_last_6 = sum(tx.tr_amount for tx in last_six_months_savings) / len(last_six_months_savings)
+                avg_savings_last_2 = sum(tx.tr_amount for tx in last_two_months_savings) / len(last_two_months_savings)
+
+                if avg_savings_last_2 > avg_savings_last_6 * 2:
+                    boost_charge = loan_boost_charge.charge_value / 100 * avg_savings_last_2
+                    processing_fee += boost_charge
+
+            # Check for existing unsettled loans and apply top-up charge if applicable
+            unsettled_loans = IssuedLoan.objects.filter(object_id=member_id, loan_status='active')
+            remaining_loan_amount = loan_amount  # Initialize remaining_loan_amount to the full loan amount
+
+            if unsettled_loans.exists():
+                unsettled_loan_balance = unsettled_loans.aggregate(total_balance=Sum('loan_balance'))['total_balance']
+                top_up_charge = loan_top_up_charge.charge_value / 100 * unsettled_loan_balance
+                processing_fee += top_up_charge
+
+                # Attempt to settle existing loans
+                for unsettled_loan in unsettled_loans:
+                    loan_balance = unsettled_loan.loan_balance
+                    if remaining_loan_amount >= loan_balance:
+                        remaining_loan_amount -= loan_balance
+                        # Settle the loan
+                        unsettled_loan.loan_balance = 0
+                        unsettled_loan.loan_status = 'settled'
+                        unsettled_loan.save()
+
+                        # Record the loan repayment in MemberAccountsLedger
+                        MemberAccountsLedger.objects.create(
+                            member_id=member,
+                            tr_amount=loan_balance,
+                            external_ref_code=generate_unique_loan_ref_id(),
+                            tr_type='credit',
+                            tr_account='loan_repayment',
+                            account_id=unsettled_loan.id,
+                            tr_mode_id=1,  # Default to Mpesa for now
+                            tr_origin='member_deposit',
+                            tr_destn='member_account',
+                            updated_by=request.user,
+                            updated_at=timezone.now()
+                        )
+
+                        # Release collaterals and guarantors
+                        Collateral.objects.filter(loan=unsettled_loan).update(loan_status='settled')
+                        Guarantor.objects.filter(loan=unsettled_loan).update(loan_status='settled')
+                    else:
+                        # Not enough loan amount to settle the loan
+                        return render(request, 'loans/loan_eligibility_summary.html', {
+                            'member': member,
+                            'loan_amount': loan_amount,
+                            'eligibility_results': {'qualified': False, 'reason': 'You must settle the existing loan first, maybe apply for a bigger loan.'},
+                        })
+
+            # Subtract processing fee from remaining loan amount
+            net_loan_amount = remaining_loan_amount - processing_fee
+
+            # Ensure net loan amount is greater than 1000
+            if net_loan_amount <= 1000:
+                return render(request, 'loans/loan_eligibility_summary.html', {
                     'member': member,
                     'loan_amount': loan_amount,
-                    'eligibility_results': eligibility_results,
-                }
-                return render(request, 'loans/loan_eligibility_summary.html', context)
+                    'eligibility_results': {'qualified': False, 'reason': 'Insufficient loan, Apply more loan to cover all penalties, repayments and fees.'},
+                })
+
+            # If eligible and deductions are valid, make changes to the database
+            loan.installment_amount = installment_amount
+            loan.loan_ref_id = generate_unique_loan_ref_id()
+            loan.processed_by = request.user
+            loan.loan_amount = loan_amount
+            loan.loan_balance = loan_amount
+            loan.save()
+
+            # Record the loan disbursement in the SaccoAccountsLedger and update accounts
+            sacco_liability_account = SaccoAccount.objects.get(account_code='4001')
+            sacco_income_account = SaccoAccount.objects.get(account_code='2001')
+
+            SaccoAccountsLedger.objects.create(
+                account_id=10,
+                description=f'Loan disbursement to {member.first_name}',
+                amount=net_loan_amount,
+                transaction_type='Dr',
+                transaction_date=timezone.now(),
+                updated_at=timezone.now(),
+                updated_by_id=request.user.id
+            )
+            sacco_liability_account.account_balance -= net_loan_amount
+            sacco_liability_account.save()
+
+            SaccoAccountsLedger.objects.create(
+                account_id=4,
+                description=f'Loan Processing fee from {member.first_name}',
+                amount=processing_fee,
+                transaction_type='Cr',
+                transaction_date=timezone.now(),
+                updated_at=timezone.now(),
+                updated_by_id=request.user.id
+            )
+            sacco_income_account.account_balance += processing_fee
+            sacco_income_account.save()
+
+            # Record the loan transaction in MemberAccountsLedger
+            MemberAccountsLedger.objects.create(
+                member_id=member,
+                tr_amount=loan_amount,
+                updated_at=timezone.now(),
+                updated_by=request.user.id,
+                external_ref_code=loan.loan_ref_id,
+                sacco_ref_code=generate_unique_loan_ref_id(),
+                tr_account='loan',
+                tr_destn='member_loan',
+                tr_mode_id=1,  # Default to Mpesa for now
+                tr_origin='loan_disbursement',
+                tr_type='debit',
+                account_id=loan.id  # Assuming account_id should be loan.id
+            )
+
+            return redirect('loans:collaterals', member_id=member.id, loan_id=loan.id)
     else:
         form = IssueLoanForm()
 
     return render(request, 'loans/loan_details.html', {'form': form, 'member': member})
 
+
+
+
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from decimal import Decimal
+from groups.models import Entity, EntityAccount, EntityAccountsLedger
+from loans.models import IssuedLoan, Collateral, Guarantor
+from accounting.models import SaccoCharge, SaccoAccountsLedger, SaccoAccount
+from .forms import IssueLoanForm
+from .utils import generate_unique_loan_ref_id
+from datetime import timedelta
+from django.db.models import Sum
+
 @login_required
 def loan_details_entity(request, entity_id):
     entity = get_object_or_404(Entity, id=entity_id)
     entity_account = get_object_or_404(EntityAccount, entity=entity)
-
+    
     if request.method == 'POST':
         form = IssueLoanForm(request.POST)
         if form.is_valid():
@@ -160,33 +308,164 @@ def loan_details_entity(request, entity_id):
             loan_amount = form.cleaned_data['loan_amount']
             repayment_period = form.cleaned_data['repayment_period']
 
-            processing_fee = Decimal('1500')
-            net_loan_amount = loan_amount - processing_fee
-
-            interest_rate = Decimal('0.01')
-            months = Decimal(repayment_period)
-            numerator = loan_amount * interest_rate * (1 + interest_rate) ** months
-            denominator = (1 + interest_rate) ** months - 1
-            installment_amount = numerator / denominator
-
-            eligibility_results = check_loan_eligibility_entity(entity, net_loan_amount)
-
-            if eligibility_results['qualified']:
-                loan.installment_amount = installment_amount
-                loan.loan_ref_id = generate_unique_loan_ref_id()
-                loan.processed_by = request.user
-                loan.loan_amount = loan_amount
-                loan.loan_balance = loan_amount
-                loan.save()
-
-                return redirect('loans:collaterals_entity', entity_id=entity.id, loan_id=loan.id)
-            else:
+            # Check loan eligibility before making deductions
+            eligibility_results = check_loan_eligibility_entity(entity, loan_amount)
+            if not eligibility_results['qualified']:
                 context = {
                     'entity': entity,
                     'loan_amount': loan_amount,
                     'eligibility_results': eligibility_results,
                 }
                 return render(request, 'loans/loan_eligibility_entity.html', context)
+
+            # Fetch SACCO charges
+            loan_interest = SaccoCharge.objects.get(charge_name='loan_interest')
+            loan_charge_un_100000 = SaccoCharge.objects.get(charge_name='loan_charge_un_100000')
+            loan_charge_ov_100000 = SaccoCharge.objects.get(charge_name='loan_charge_ov_100000')
+            loan_boost_charge = SaccoCharge.objects.get(charge_name='loan_boost_charge')
+            loan_top_up_charge = SaccoCharge.objects.get(charge_name='loan_top_up_charge')
+
+            # Calculate interest
+            interest_rate = loan_interest.charge_value / 100
+            months = Decimal(repayment_period)
+            numerator = loan_amount * interest_rate * (1 + interest_rate) ** months
+            denominator = (1 + interest_rate) ** months - 1
+            installment_amount = numerator / denominator
+
+            # Determine processing fee based on loan amount
+            if loan_amount < 100000:
+                processing_fee = loan_charge_un_100000.charge_value
+            else:
+                processing_fee = loan_charge_ov_100000.charge_value
+
+            # Calculate loan boost charge if applicable
+            six_months_ago = timezone.now() - timedelta(days=180)
+            two_months_ago = timezone.now() - timedelta(days=60)
+
+            last_six_months_savings = EntityAccountsLedger.objects.filter(
+                entity=entity, tr_account='savings', updated_at__gte=six_months_ago
+            ).order_by('-updated_at')[:6]
+
+            last_two_months_savings = EntityAccountsLedger.objects.filter(
+                entity=entity, tr_account='savings', updated_at__gte=two_months_ago
+            ).order_by('-updated_at')[:2]
+
+            if last_six_months_savings and last_two_months_savings:
+                avg_savings_last_6 = sum(tx.tr_amount for tx in last_six_months_savings) / len(last_six_months_savings)
+                avg_savings_last_2 = sum(tx.tr_amount for tx in last_two_months_savings) / len(last_two_months_savings)
+
+                if avg_savings_last_2 > avg_savings_last_6 * 2:
+                    boost_charge = loan_boost_charge.charge_value / 100 * avg_savings_last_2
+                    processing_fee += boost_charge
+
+            # Check for existing unsettled loans and apply top-up charge if applicable
+            unsettled_loans = IssuedLoan.objects.filter(object_id=entity_id, loan_status='active')
+            remaining_loan_amount = loan_amount  # Initialize remaining_loan_amount to the full loan amount
+
+            if unsettled_loans.exists():
+                unsettled_loan_balance = unsettled_loans.aggregate(total_balance=Sum('loan_balance'))['total_balance']
+                top_up_charge = loan_top_up_charge.charge_value / 100 * unsettled_loan_balance
+                processing_fee += top_up_charge
+
+                # Attempt to settle existing loans
+                for unsettled_loan in unsettled_loans:
+                    loan_balance = unsettled_loan.loan_balance
+                    if remaining_loan_amount >= loan_balance:
+                        remaining_loan_amount -= loan_balance
+                        # Settle the loan
+                        unsettled_loan.loan_balance = 0
+                        unsettled_loan.loan_status = 'settled'
+                        unsettled_loan.save()
+
+                        # Record the loan repayment in EntityAccountsLedger
+                        EntityAccountsLedger.objects.create(
+                            entity=entity,
+                            tr_amount=loan_balance,
+                            external_ref_code=generate_unique_loan_ref_id(),
+                            tr_type='credit',
+                            tr_account='loan_repayment',
+                            tr_mode_id=1,  # Default to Mpesa for now
+                            tr_origin='entity_deposit',
+                            tr_destn='entity_account',
+                            updated_by=request.user,
+                            updated_at=timezone.now()
+                        )
+
+                        # Release collaterals and guarantors
+                        Collateral.objects.filter(loan=unsettled_loan).update(loan_status='settled')
+                        Guarantor.objects.filter(loan=unsettled_loan).update(loan_status='settled')
+                    else:
+                        # Not enough loan amount to settle the loan
+                        return render(request, 'loans/loan_eligibility_entity.html', {
+                            'entity': entity,
+                            'loan_amount': loan_amount,
+                            'eligibility_results': {'qualified': False, 'reason': 'You must settle the existing loan first, maybe apply for a bigger loan.'},
+                        })
+
+            # Subtract processing fee from remaining loan amount
+            net_loan_amount = remaining_loan_amount - processing_fee
+
+            # Ensure net loan amount is greater than 1000
+            if net_loan_amount <= 1000:
+                return render(request, 'loans/loan_eligibility_entity.html', {
+                    'entity': entity,
+                    'loan_amount': loan_amount,
+                    'eligibility_results': {'qualified': False, 'reason': 'Insufficient loan, Apply more loan to cover all penalties, repayments and fees.'},
+                })
+
+            # If eligible and deductions are valid, make changes to the database
+            loan.installment_amount = installment_amount
+            loan.loan_ref_id = generate_unique_loan_ref_id()
+            loan.processed_by = request.user
+            loan.loan_amount = loan_amount
+            loan.loan_balance = loan_amount
+            loan.save()
+
+            # Record the loan disbursement in the SaccoAccountsLedger and update accounts
+            sacco_liability_account = SaccoAccount.objects.get(account_code='4001')
+            sacco_income_account = SaccoAccount.objects.get(account_code='2001')
+
+            SaccoAccountsLedger.objects.create(
+                account_id=10,
+                description=f'Loan disbursement to {entity.entity_name}',
+                amount=net_loan_amount,
+                transaction_type='Dr',
+                transaction_date=timezone.now(),
+                updated_at=timezone.now(),
+                updated_by_id=request.user.id
+            )
+            sacco_liability_account.account_balance -= net_loan_amount
+            sacco_liability_account.save()
+
+            SaccoAccountsLedger.objects.create(
+                account_id=4,
+                description=f'Loan Processing fee from {entity.entity_name}',
+                amount=processing_fee,
+                transaction_type='Cr',
+                transaction_date=timezone.now(),
+                updated_at=timezone.now(),
+                updated_by_id=request.user.id
+            )
+            sacco_income_account.account_balance += processing_fee
+            sacco_income_account.save()
+
+            # Record the loan transaction in EntityAccountsLedger
+            EntityAccountsLedger.objects.create(
+                entity=entity,
+                tr_amount=loan_amount,
+                updated_at=timezone.now(),
+                entity_id=entity.id,
+                updated_by_id=request.user.id,
+                external_ref_code=loan.loan_ref_id,
+                sacco_ref_code=generate_unique_loan_ref_id(),
+                tr_account='loan',
+                tr_destn='entity_loan',
+                tr_mode_id=1,  # Default to Mpesa for now
+                tr_origin='loan_disbursement',
+                tr_type='debit'
+            )
+
+            return redirect('loans:collaterals_entity', entity_id=entity.id, loan_id=loan.id)
     else:
         form = IssueLoanForm()
 
@@ -250,16 +529,15 @@ def check_loan_eligibility_member(member, loan_amount):
         eligibility_results['reasons'].append('Insufficient free savings.')
     
     # Check existing loan balance
-    if member.memberaccount.loan != 0:
-        eligibility_results['qualified'] = False
-        eligibility_results['reasons'].append('Existing loan balance must be 0.')
-    
-    # Check consistent savings for the last 6 months (for testing, check last 3 days)
-    three_days_ago = timezone.now() - timedelta(days=3)  # For testing, change to 6 months
-    savings_transactions = Transaction.objects.filter(
-        member_id=member, tr_account='savings', updated_date__gte=three_days_ago
+    #if member.memberaccount.loan != 0:
+       # eligibility_results['qualified'] = False
+        #eligibility_results['reasons'].append('Existing loan balance must be 0.')
+    # Check for consistent savings transactions
+    six_months_ago = timezone.now() - timedelta(days=180)
+    savings_transactions = MemberAccountsLedger.objects.filter(
+        member_id=member, tr_account='savings', updated_at__gte=six_months_ago
     )
-    if savings_transactions.count() < 6:
+    if savings_transactions.count() < 2:
         eligibility_results['qualified'] = False
         eligibility_results['reasons'].append('Inconsistent savings.')
     
@@ -282,10 +560,10 @@ def check_loan_eligibility_entity(entity, loan_amount):
         eligibility_results['qualified'] = False
         eligibility_results['reasons'].append('Loan amount exceeds 3 times the entity\'s savings.')
     # Check for unsettled loans
-    unsettled_loans = IssuedLoan.objects.filter(object_id=entity.id, loan_status='active')
-    if unsettled_loans.exists():
-        eligibility_results['qualified'] = False
-        eligibility_results['reasons'].append('Entity has unsettled loans.')
+    #unsettled_loans = IssuedLoan.objects.filter(object_id=entity.id, loan_status='active')
+    #if unsettled_loans.exists():
+        #eligibility_results['qualified'] = False
+        #eligibility_results['reasons'].append('Entity has unsettled loans.')
 
     # Check for consistent savings transactions
     six_months_ago = timezone.now() - timedelta(days=180)
@@ -299,13 +577,26 @@ def check_loan_eligibility_entity(entity, loan_amount):
 
     return eligibility_results
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.contrib import messages
+from .forms import CollateralForm, GuarantorForm
+from members.models import Member
+from groups.models import Entity
+from loans.models import Collateral, Guarantor, IssuedLoan
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 @login_required
 def collaterals(request, member_id, loan_id):
     member = get_object_or_404(Member, id=member_id)
     loan = get_object_or_404(IssuedLoan, id=loan_id)
     
     if request.method == 'POST':
-        form = CollateralForm(request.POST)
+        form = CollateralForm(request.POST, request.FILES)  # Handle file uploads
         if form.is_valid():
             collateral = form.save(commit=False)
             collateral.loan = loan
@@ -317,13 +608,14 @@ def collaterals(request, member_id, loan_id):
     
     collaterals = Collateral.objects.filter(loan=loan)
     return render(request, 'loans/collaterals.html', {'form': form, 'member': member, 'loan': loan, 'collaterals': collaterals})
+
 @login_required
 def collaterals_entity(request, entity_id, loan_id):
     entity = get_object_or_404(Entity, id=entity_id)
     loan = get_object_or_404(IssuedLoan, id=loan_id)
     
     if request.method == 'POST':
-        form = CollateralForm(request.POST)
+        form = CollateralForm(request.POST, request.FILES)  # Handle file uploads
         if form.is_valid():
             collateral = form.save(commit=False)
             collateral.loan = loan
@@ -335,6 +627,7 @@ def collaterals_entity(request, entity_id, loan_id):
     
     collaterals = Collateral.objects.filter(loan=loan)
     return render(request, 'loans/collaterals_entity.html', {'form': form, 'entity': entity, 'loan': loan, 'collaterals': collaterals})
+
 @login_required
 def guarantors(request, member_id, loan_id):
     member = get_object_or_404(Member, id=member_id)
@@ -359,6 +652,7 @@ def guarantors(request, member_id, loan_id):
     
     guarantors = Guarantor.objects.filter(loan=loan)
     return render(request, 'loans/guarantors.html', {'form': form, 'member': member, 'loan': loan, 'guarantors': guarantors})
+
 @login_required
 def guarantors_entity(request, entity_id, loan_id):
     entity = get_object_or_404(Entity, id=entity_id)
@@ -477,7 +771,91 @@ def collateral_and_guarantor_check_entity(request, entity_id, loan_id):
         'insufficient_guarantors': insufficient_guarantors,
     }
     
-    return render(request, 'loans/collateral_and_guarantor_check.html', context)
+    return render(request, 'loans/collateral_and_guarantor_check_entity.html', context)
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import IssuedLoan, Collateral, Guarantor
+from .forms import LoanApprovalForm
+from members.models import Member, MemberAccountsLedger
+from groups.models import Entity, EntityAccountsLedger
+
+@login_required
+def loan_approval_list(request):
+    loans = IssuedLoan.objects.filter(loan_status='pending')
+    return render(request, 'loans/loan_approval_list.html', {'loans': loans})
+
+
+
+@login_required
+def loan_approval_member_detail(request, loan_id):
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    member = loan.content_object  # Assuming content_object is a Member
+
+    if not isinstance(member, Member):
+        messages.error(request, 'Invalid loan details.')
+        return redirect('loans:loan_approval_list')
+
+    transactions = MemberAccountsLedger.objects.filter(member_id=member.id).order_by('-updated_at')[:6]
+    member_account = MemberAccount.objects.get(member=member)
+    collaterals = Collateral.objects.filter(loan=loan)
+    guarantors = Guarantor.objects.filter(loan=loan)
+
+    if request.method == 'POST':
+        form = LoanApprovalForm(request.POST, instance=loan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Loan approval status updated.')
+            return redirect('loans:loan_approval_list')
+    else:
+        form = LoanApprovalForm(instance=loan)
+
+    context = {
+        'loan': loan,
+        'member': member,
+        'transactions': transactions,
+        'collaterals': collaterals,
+        'guarantors': guarantors,
+        'form': form,
+        'savings': member_account.savings
+    }
+
+    return render(request, 'loans/loan_approval_member_detail.html', context)
+
+@login_required
+def loan_approval_entity_detail(request, loan_id):
+    loan = get_object_or_404(IssuedLoan, id=loan_id)
+    entity = loan.content_object  # Assuming content_object is an Entity
+
+    if not isinstance(entity, Entity):
+        messages.error(request, 'Invalid loan details.')
+        return redirect('loans:loan_approval_list')
+
+    transactions = EntityAccountsLedger.objects.filter(entity_id=entity.id).order_by('-updated_at')[:6]
+    entity_account = EntityAccount.objects.get(entity=entity)
+    collaterals = Collateral.objects.filter(loan=loan)
+    guarantors = Guarantor.objects.filter(loan=loan)
+
+    if request.method == 'POST':
+        form = LoanApprovalForm(request.POST, instance=loan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Loan approval status updated.')
+            return redirect('loans:loan_approval_list')
+    else:
+        form = LoanApprovalForm(instance=loan)
+
+    context = {
+        'loan': loan,
+        'entity': entity,
+        'transactions': transactions,
+        'collaterals': collaterals,
+        'guarantors': guarantors,
+        'form': form,
+        'savings': entity_account.savings
+    }
+
+    return render(request, 'loans/loan_approval_entity_detail.html', context)
 
 
 @login_required
@@ -494,20 +872,6 @@ def release_loan(request, member_id, loan_id):
             # Deduct the loan amount from the member's loan balance
             member_account.loan = F('loan') - loan.loan_amount
             member_account.save()
-
-            # Record the transaction
-            Transaction.objects.create(
-                member_id=member,
-                tr_amount=loan.loan_amount,
-                tr_type='debit',  # Assuming releasing a loan is a debit transaction
-                tr_account='loan',  # Assuming 'loan' is the account type for loans
-                account_id=loan.id,
-                tr_mode_id=1,  # Default to Mpesa for now
-                tr_origin='working_capital',  # Update accordingly
-                tr_destn='member account',
-                updated_by=request.user.username,
-                updated_date=timezone.now()
-            )
 
             # Save the cheque number or any other related info
             loan.cheque_number = cheque_number
@@ -539,18 +903,6 @@ def release_loan_entity(request, entity_id, loan_id):
             # Deduct the loan amount from the member's loan balance
             entity_account.loan = F('loan') - loan.loan_amount
             entity_account.save()
-
-            # Record the transaction
-            EntityAccountsLedger.objects.create(
-                entity=entity,
-                tr_amount=loan.loan_amount,
-                tr_type='debit',  # Assuming releasing a loan is a debit transaction
-                tr_account='loan',  # Assuming 'loan' is the account type for loans
-                tr_mode_id=1,  # Default to Mpesa for now
-                tr_origin='working_capital',  # Update accordingly
-                tr_destn='entity account',
-                updated_by=request.user
-            )
 
             # Save the cheque number or any other related info
             loan.cheque_number = cheque_number

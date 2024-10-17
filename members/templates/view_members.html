@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}
+    View Members - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+    {% include 'more_menu_members.html' %}
+
+    <div class="container mt-4">
+        <h1 class="text-2xl font-bold mb-4">View Members</h1>
+        
+        <!-- Search Form -->
+        <form method="get" action="{% url 'members:view_members' %}">
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-6">
+                    <input type="text" name="q" id="searchInput" placeholder="Search for members..." class="form-control" value="{{ query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="membersTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Member ID</th>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Email</th>
+                        <th>Loan Amount</th>
+                        <th>Savings Amount</th>
+                        <th>Share Capital Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr onclick="window.location='{% url 'members:member_profile' member.id %}'" style="cursor: pointer;">
+                        <td>{{ member.id }}</td>
+                        <td>{{ member.first_name }} {{ member.last_name }}</td>
+                        <td>{{ member.phone_number }}</td>
+                        <td>{{ member.email }}</td>
+                        <td>{{ member_loan_data|get_item:member.id|default:"0" }}</td>
+                        <td>{{ member.memberaccount.savings|intcomma }}</td>
+                        <td>{{ member.memberaccount.share_capital|intcomma }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No members found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

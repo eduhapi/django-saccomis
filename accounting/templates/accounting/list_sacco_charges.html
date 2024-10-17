@@ -6,8 +6,23 @@ SACCO Charges - AKIBANIPESA
 {% endblock %}
 
 {% block content %}
+{% include 'more_menu_accounting.html' %}
 <div class="container mt-5">
     <h2 class="text-2xl font-bold mb-4">SACCO Charges</h2>
+	
+    <!-- Message display section -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Table to display SACCO charges -->
     <div class="table-responsive">

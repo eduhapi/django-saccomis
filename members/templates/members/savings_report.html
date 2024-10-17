@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Savings Report</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.member.first_name }} {{ account.member.last_name }}</td>
+                <td>{{ account.savings }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

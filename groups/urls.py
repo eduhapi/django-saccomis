@@ -18,10 +18,12 @@ urlpatterns = [
     path('deposit/<str:entity_id>/', views.deposit, name='deposit'),
     path('withdraw/<str:entity_id>/', views.withdraw, name='withdraw'),
     path('transfer/<str:entity_id>/', views.transfer, name='transfer'),
+    path('loan-repayment/<str:entity_id>/', views.loan_repayment, name='loan_repayment'),
     path('entity-statement-form/', views.entity_statement_form, name='entity_statement_form'),
     path('entity-statement/', views.entity_statement, name='entity_statement'),
     path('download-pdf/', views.download_pdf, name='download_pdf'),
     path('download-excel/', views.download_excel, name='download_excel'),
     path('view_groups/',views.view_groups, name='view_groups'),
+    path('entity_profile/<str:entity_id>/', views.entity_profile, name='entity_profile'),
 
 ]

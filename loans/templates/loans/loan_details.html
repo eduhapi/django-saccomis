@@ -6,11 +6,13 @@
 
 {% block content %}
 <div class="container mx-auto mt-8 px-4">
-    <h1 class="text-2xl font-bold mb-4">Add the Loan Details</h1>
-    <form method="post" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Next</button>
-    </form>
+    <div class="bg-gray-200 p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Add Loan Details</h1>
+        <form method="post" class="max-w-md mx-auto">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary mt-4">Next</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

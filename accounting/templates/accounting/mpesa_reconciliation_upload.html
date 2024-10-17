@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Upload M-Pesa Reconciliation File</h1>
+
+    <!-- Message display section -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="file">Select Excel file</label>
+            {{ form.file }}
+            <div class="invalid-feedback">
+                Please select a file.
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="priority">Select Priority</label>
+            {{ form.priority }}
+            <div class="invalid-feedback">
+                Please select a priority.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+source /home/eastaki1/virtualenv/smis.eastakiba.co.ke/2.7/bin/activate && cd /home/eastaki1/smis.eastakiba.co.ke
+source /home/eastaki1/virtualenv/smis.eastakiba.co.ke/3.8/bin/activate && cd /home/eastaki1/smis.eastakiba.co.ke
+zdVpD^$4u-hJ
+
+
+
+
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import MpesaReconciliationForm
+from .models import MpesaReconciliationLedger
+from .utils import process_reconciliation_entries
+from datetime import datetime
+from decimal import Decimal
+from django.utils.dateparse import parse_datetime
+from dateutil import parser  # Importing the dateutil parser
+
+def parse_date_string(date_str):
+    try:
+        # Ensure the input is a string
+        date_str = str(date_str)
+        return parser.parse(date_str)
+    except (ValueError, TypeError):
+        return None
+
+
+def mpesa_reconciliation_upload(request):
+    if request.method == 'POST':
+        form = MpesaReconciliationForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = request.FILES['file']
+            priority = form.cleaned_data['priority']
+
+            try:
+                df = pd.read_excel(file)
+
+                # Ensure the required columns are present
+                required_columns = ['receipt_no', 'completion_date', 'paid_in', 'account_no']
+                if not all(col in df.columns for col in required_columns):
+                    messages.error(request, 'Excel file must contain receipt_no, completion_date, paid_in, and account_no columns.')
+                    return redirect('mpesa_reconciliation_upload')
+
+                entries = []
+                for _, row in df.iterrows():
+                    if pd.isna(row['paid_in']):
+                        continue
+
+                    try:
+                        completion_date = parse_date_string(row['completion_date'])
+                        if completion_date is None:
+                            raise ValueError("Invalid date format")
+
+                        paid_in = Decimal(row['paid_in'])
+                    except (ValueError, TypeError):
+                        messages.error(request, f"Invalid data format in row: {row.to_dict()}")
+                        continue
+
+                    entry = MpesaReconciliationLedger(
+                        receipt_no=row['receipt_no'],
+                        completion_date=completion_date,
+                        paid_in=paid_in,
+                        account_no=row['account_no'],
+                        priority=priority,
+                        reconciled=False
+                    )
+                    entries.append(entry)
+
+                MpesaReconciliationLedger.objects.bulk_create(entries)
+                process_reconciliation_entries(entries)
+
+                messages.success(request, 'File processed successfully.')
+                return redirect('mpesa_reconciliation_upload')
+
+            except Exception as e:
+                messages.error(request, f"Error processing the file: {str(e)}")
+        else:
+            messages.error(request, 'Form is not valid.')
+    else:
+        form = MpesaReconciliationForm()
+
+    return render(request, 'accounting/mpesa_reconciliation_upload.html', {'form': form})
+#This update ensures the date parsing handles string inputs correctly and processes valid rows while ignoring those with invalid data formats or empty paid_in values.
+
+
+
+
+
+
+
+

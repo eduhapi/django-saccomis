@@ -1,86 +1,27 @@
 {% extends 'base.html' %}
-{% load humanize %}
-{% block title %}
-    Mini-Statement - AKIBANIPESA
-{% endblock %}
-
 {% block content %}
-<div class="container mx-auto mt-8 p-4">
-    <h1 class="text-center text-2xl font-bold mb-2">OUR COMPANY NAME LIMITED</h1>
-    <p class="text-center mb-4">P.O BOX 111-222, CITY.</p>
-    <h2 class="text-center text-xl font-bold mb-6">MEMBER {{ member.member_account }} MINISTATEMENT</h2>
-
-    <div class="mb-4">
-        <p><strong>Member name:</strong> {{ member.first_name }} {{ member.last_name }}</p>
-        <p><strong>Account type:</strong> {{ account_type }}</p>
-       
-    </div>
-
-    <hr class="my-4">
-
-    <div class="mb-4">
-        <p><strong>Share capital balance b/f:</strong> Ksh {{ share_capital_balance_bf|intcomma }}</p>
-        <p><strong>Savings balance b/f:</strong> Ksh {{ savings_balance_bf|intcomma }}</p>
-        <p><strong>Loan balance b/f:</strong> Ksh {{ loan_balance_bf|intcomma }}</p>
-    </div>
-
-    <hr class="my-4">
-
-    <table class="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
-        <thead class="bg-gray-800 text-white">
+{% include 'more_menu_members.html' %}
+<div class="container">
+    <h2>Mini Statement for {{ member.first_name }} {{ member.last_name }}</h2>
+    <table>
+        <thead>
             <tr>
-                <th class="px-4 py-2">Date</th>
-                <th class="px-4 py-2">Amount</th>
-                <th class="px-4 py-2">Account</th>
-                <th class="px-4 py-2">Balance</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Balance</th>
             </tr>
         </thead>
         <tbody>
             {% for transaction in transactions %}
-                <tr class="bg-gray-100 border-b">
-                    <td class="px-4 py-2">{{ transaction.updated_date|date:"d/m/Y H:i:s" }}</td>
-                    <td class="px-4 py-2">{{ transaction.tr_amount|intcomma }}</td>
-                    <td class="px-4 py-2">{{ transaction.tr_account }}</td>
-                    <td class="px-4 py-2">{{ balance_bf|intcomma }}</td>
-
-                 
-                </tr>
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.balance }}</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-
-    <hr class="my-4">
-
-    <p class="text-center">You were served by Python system</p>
-
-    <div class="text-center mt-6">
-        <button onclick="printStatement()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Print</button>
-    </div>
 </div>
-
-<style>
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-        .container, .container * {
-            visibility: visible;
-        }
-        .container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        .container h1, .container p, .container table {
-            color: black; /* Ensure print color is black */
-        }
-    }
-</style>
-
-<script>
-    function printStatement() {
-        window.print();
-    }
-</script>
 {% endblock %}

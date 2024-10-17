@@ -17,6 +17,16 @@ def clean_amount(self):
             raise forms.ValidationError("Amount must be greater than zero.")
         return amount
 
+class LoanRepaymentForm(forms.Form):
+    amount = forms.DecimalField(max_digits=10, decimal_places=2, label='Repayment Amount')
+    external_ref_code = forms.CharField(max_length=50, label='External Reference Code')
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount <= 0:
+            raise forms.ValidationError("Repayment amount must be greater than zero.")
+        return amount
+
 class WithdrawalForm(forms.Form):
     amount = forms.DecimalField(max_digits=10, decimal_places=2)
     

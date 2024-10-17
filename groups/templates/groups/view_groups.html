@@ -1,90 +1,75 @@
 {% extends 'base.html' %}
 {% load humanize %}
+
+{% load custom_filters %}
+
 {% block title %}
-    View Members - AKIBANIPESA
+    View Entities
 {% endblock %}
 
 {% block content %}
-    <div class="container mx-auto mt-8 px-4">
-        <h1 class="text-2xl font-bold mb-4">View Groups</h1>
-        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for groups..." class="w-full p-2 mb-4 border border-gray-300 rounded-md">
-        <table class="table" id="membersTable">
-            <thead>
-                <tr>
+ {% include 'more_menu_entities.html' %}'
+
+    <div class="container mt-4">
+        <h1 class="text-2xl font-bold mb-4">View Entities</h1>
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for entities..." class="form-control">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="membersTable">
+                <thead class="thead-light">
+                    <tr>
                     <th>Group ID</th>
                     <th>Name</th>
                     <th>Office Phone Number</th>
                     <th>Email</th>
-                    <th>Loan Amount</th>
                     <th>Savings Amount</th>
                     <th>Share Capital Amount</th>
+                    <th>Active Loans</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for group in groups %}
-                
-                    <td>{{group.id }}</td>
+                <tr onclick="window.location='{% url 'groups:entity_profile' group.id %}'" style="cursor: pointer;">
+                    <td>{{ group.id }}</td>
                     <td>{{ group.entity_name }}</td>
                     <td>{{ group.office_phone_number }}</td>
                     <td>{{ group.email }}</td>
-                    <td>{{ group.account.loan|intcomma }}</td>
                     <td>{{ group.account.savings|intcomma }}</td>
                     <td>{{ group.account.share_capital|intcomma }}</td>
+                    <td>{{ group_loan_data|get_item:group.id|default:"0"|intcomma }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">No groups found.</td>
+                    <td colspan="8">No groups found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
-    <style>
-        /* Add border and styling for the table */
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
 
-        .table th,
-        .table td {
-            border: 1px solid #e2e8f0; /* Add border to table cells */
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        .table th {
-            background-color: #f7fafc;
-            border-bottom-width: 2px;
-        }
-
-        .table tbody tr:nth-child(odd) {
-            background-color: #edf2f7;
-        }
-    </style>
     <script>
         function searchTable() {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById("searchInput");
-            filter = input.value.toUpperCase();
-            table = document.getElementById("membersTable");
-            tr = table.getElementsByTagName("tr");
-            for (i = 0; i < tr.length; i++) {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toUpperCase();
+            var table = document.getElementById("membersTable");
+            var tr = table.getElementsByTagName("tr");
+            for (var i = 1; i < tr.length; i++) {
                 var matchFound = false;
-                td = tr[i].getElementsByTagName("td");
+                var td = tr[i].getElementsByTagName("td");
                 for (var j = 0; j < td.length; j++) {
                     if (td[j]) {
-                        txtValue = td[j].textContent || td[j].innerText;
+                        var txtValue = td[j].textContent || td[j].innerText;
                         if (txtValue.toUpperCase().indexOf(filter) > -1) {
                             matchFound = true;
+                            break;
                         }
                     }
                 }
-                if (matchFound) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
+                tr[i].style.display = matchFound ? "" : "none";
             }
         }
     </script>

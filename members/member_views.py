@@ -5,27 +5,80 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import datetime
+from loans.models import IssuedLoan, Collateral, Guarantor
 
 # Get the current time in the current time zone
 current_time = timezone.now()
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Member
+from loans. models import IssuedLoan
+
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum, Q
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
 @login_required
 def view_members(request):
-    members = Member.objects.all().select_related('memberaccount')
-    context = {'members': members}
+    query = request.GET.get('q')
+    
+    if query:
+        members = Member.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(email__icontains=query) |
+            Q(id__icontains=query)
+        ).select_related('memberaccount').order_by('-id')
+    else:
+        members = Member.objects.all().select_related('memberaccount').order_by('-id')[:100]
+    
+    active_loans = IssuedLoan.objects.filter(
+        loan_status='active',
+        content_type=ContentType.objects.get_for_model(Member)
+    )
+    
+    # Annotate each member with their active loan amount
+    member_loan_data = {
+        loan.object_id: loan.loan_balance
+        for loan in active_loans
+    }
+    
+    context = {
+        'members': members,
+        'member_loan_data': member_loan_data,
+        'query': query
+    }
     return render(request, 'members/view_members.html', context)
 
+
+
+
+from django.db.models import Sum
 
 @login_required
 def member_profile(request, member_id):
     member = get_object_or_404(Member, id=member_id)
-    savings = member.memberaccount.savings
-    loan = member.memberaccount.loan
-    potential_loan = (savings * 3) - loan
-
+    
+    # Fetch active loans and calculate their total principal and balance
+    active_loans = IssuedLoan.objects.filter(object_id=str(member.id), loan_status='active')
+    active_loan_principal = active_loans.aggregate(Sum('loan_amount'))['loan_amount__sum'] or 0
+    active_loan_balance = active_loans.aggregate(Sum('loan_balance'))['loan_balance__sum'] or 0
+    
+    # Fetch all loans and calculate their total balance
+    all_loans = IssuedLoan.objects.filter(object_id=str(member.id))
+    total_loans_taken = all_loans.aggregate(Sum('loan_amount'))['loan_amount__sum'] or 0
+    
     context = {
         'member': member,
-        'potential_loan': potential_loan,
+        'active_loan_principal': active_loan_principal,
+        'total_loans_taken': total_loans_taken,
+        'active_loan_balance': active_loan_balance,
     }
     return render(request, 'member_profile.html', context)
 

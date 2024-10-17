@@ -65,11 +65,11 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'lon108.truehost.cloud'
+EMAIL_HOST = 'lon112.truehost.cloud'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'info2@eastakiba.co.ke'
-EMAIL_HOST_PASSWORD = '(Zdp(ulv]Ho['
+EMAIL_HOST_USER = 'info2@kodetrix.co.ke'
+EMAIL_HOST_PASSWORD = '6;OKV&BTf1T['
 
 
 MIDDLEWARE = [
@@ -111,9 +111,9 @@ WSGI_APPLICATION = 'saccomis.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'AKIBANIPESA_DEV',   # Replace with your database name
+        'NAME': 'postgres',   # Replace with your database name
         'USER': 'postgres',   # Replace with your PostgreSQL username
-        'PASSWORD': 'postgres@dba!2024',   # Replace with your PostgreSQL password
+        'PASSWORD': 'future2015',   # Replace with your PostgreSQL password
         'HOST': '127.0.0.1',   # Replace with your PostgreSQL host
         'PORT': '5432',   # Replace with your PostgreSQL port (default is 5432)
     }
@@ -185,3 +185,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# settings.py
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+

@@ -1,0 +1,25 @@
+<!-- accounting/templates/accounting/sacco_cumulative_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Sacco Cumulative Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Account Code</th>
+      <th>Total Credits</th>
+      <th>Total Debits</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in sacco_accounts %}
+    <tr>
+      <td>{{ account.account_code }}</td>
+      <td>{{ account.total_credits }}</td>
+      <td>{{ account.total_debits }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

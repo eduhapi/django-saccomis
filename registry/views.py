@@ -101,7 +101,7 @@ def upload_bulk_member_accounts(request):
                 share_capital = float(sheet.cell(row_idx, 1).value)
                 savings = float(sheet.cell(row_idx, 2).value)
                 reg_fee = float(sheet.cell(row_idx, 3).value)
-                loan = float(sheet.cell(row_idx, 4).value)
+                mobile_wallet = float(sheet.cell(row_idx, 4).value)
 
                 try:
                     member = Member.objects.get(id=member_id)
@@ -111,7 +111,7 @@ def upload_bulk_member_accounts(request):
                             'share_capital': share_capital,
                             'savings': savings,
                             'reg_fee': reg_fee,
-                            'loan': loan,
+                            'mobile_wallet': mobile_wallet,
                         }
                     )
                 except Member.DoesNotExist:

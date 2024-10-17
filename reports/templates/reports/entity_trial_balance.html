@@ -1,0 +1,29 @@
+<!-- accounting/templates/accounting/entity_trial_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Entity Trial Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Entity Name</th>
+      <th>Registration Fee</th>
+      <th>Savings</th>
+      <th>Share Capital</th>
+      <th>Loan</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in entity_accounts %}
+    <tr>
+      <td>{{ account.entity_id }}</td>
+      <td>{{ account.reg_fee }}</td>
+      <td>{{ account.savings }}</td>
+      <td>{{ account.share_capital }}</td>
+      <td>{{ account.loan }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

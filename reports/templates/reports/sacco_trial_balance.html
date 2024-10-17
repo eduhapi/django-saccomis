@@ -1,0 +1,27 @@
+<!-- accounting/templates/accounting/sacco_trial_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Sacco Trial Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Account Code</th>
+      <th>Account Name</th>
+      <th>Account Type</th>
+      <th>Account Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in sacco_accounts %}
+    <tr>
+      <td>{{ account.account_code }}</td>
+      <td>{{ account.account_name }}</td>
+      <td>{{ account.account_type }}</td>
+      <td>{{ account.account_balance }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

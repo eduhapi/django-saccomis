@@ -15,7 +15,7 @@ class EntityForm(forms.ModelForm):
 class EntityAccountForm(forms.ModelForm):
     class Meta:
         model = EntityAccount
-        fields = ['reg_fee','savings', 'share_capital', 'loan']
+        fields = ['reg_fee','savings', 'share_capital', 'mobile_wallet']
 
 class EntityOfficialForm(forms.ModelForm):
     class Meta:
@@ -32,9 +32,17 @@ from django import forms
 
 class DepositForm(forms.Form):
     amount = forms.DecimalField(label='Amount', min_value=0.01)
-    account_type = forms.ChoiceField(label='Account Type', choices=[('savings', 'Savings'), ('share_capital', 'Share Capital'), ('loan', 'Loan')])
+    account_type = forms.ChoiceField(label='Account Type', choices=[('savings', 'Savings'), ('share_capital', 'Share Capital')])
     external_ref_code = forms.CharField(label='External Reference Code', required=False)
+class LoanRepaymentForm(forms.Form):
+    amount = forms.DecimalField(max_digits=10, decimal_places=2, label='Repayment Amount')
+    external_ref_code = forms.CharField(max_length=50, label='External Reference Code')
 
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount <= 0:
+            raise forms.ValidationError("Repayment amount must be greater than zero.")
+        return amount
 class WithdrawForm(forms.Form):
     amount = forms.DecimalField(label='Amount', min_value=0.01)
     account_type = forms.ChoiceField(label='Account Type', choices=[('savings', 'Savings'), ('share_capital', 'Share Capital')])

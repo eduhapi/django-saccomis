@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Pending Loan Approvals</h2>
+    <ul>
+        {% for loan in loans %}
+        <li class="mb-2">
+            {% if loan.content_type.model == 'member' %}
+            <a href="{% url 'loans:loan_approval_member_detail' loan.id %}" class="text-blue-500 hover:underline">
+                {{ loan.content_object.first_name }} {{ loan.content_object.last_name }} - {{ loan.loan_amount }}
+            </a>
+            {% elif loan.content_type.model == 'entity' %}
+            <a href="{% url 'loans:loan_approval_entity_detail' loan.id %}" class="text-blue-500 hover:underline">
+                {{ loan.content_object.entity_name }} - {{ loan.loan_amount }}
+            </a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

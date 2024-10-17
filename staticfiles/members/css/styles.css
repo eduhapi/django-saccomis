@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Additional custom styles */
+.container {
+    @apply mx-auto mt-8 p-4 max-w-7xl;
+}
+
+form {
+    @apply bg-white shadow-md rounded-lg p-8 mx-auto mt-6 max-w-md;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="date"],
+form input[type="number"],
+form input[type="file"],
+form select {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md mb-4;
+}
+
+form button {
+    @apply inline-block bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700;
+}
+
+body {
+    @apply bg-gray-100;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.header,
+.footer {
+    @apply bg-gray-900 text-white p-2 text-center;
+}
+
+.header .header-left {
+    @apply float-left;
+}
+
+.header .header-right {
+    @apply float-right;
+}
+
+.header::after {
+    @apply clear-both;
+    content: "";
+    display: table;
+}
+
+.header-right span {
+    @apply mr-4;
+}
+
+.btn {
+    @apply px-2 py-1 text-white rounded;
+}
+
+.btn-login {
+    @apply bg-blue-600;
+}
+
+.btn-logout {
+    @apply bg-red-600;
+}
+
+.main-container {
+    @apply flex min-h-screen;
+    padding-top: 40px; /* Adjust based on header height */
+    padding-bottom: 40px; /* Adjust based on footer height */
+}
+
+.sidebar {
+    @apply w-52 bg-gray-800 p-5;
+}
+
+.sidebar ul {
+    @apply list-none p-0;
+}
+
+.sidebar ul li {
+    @apply mb-2;
+}
+
+.sidebar ul li a {
+    @apply block text-white no-underline p-2 bg-gray-700 rounded transition-colors;
+}
+
+.sidebar ul li a:hover {
+    @apply bg-green-500;
+}
+
+.content {
+    @apply flex-1 p-5;
+}
+
+.table-auto {
+    @apply w-full bg-white shadow-md rounded-lg overflow-hidden;
+}
+
+.table-auto thead th {
+    @apply bg-gray-800 text-white px-4 py-2;
+}
+
+.table-auto tbody tr {
+    @apply bg-gray-100 border-b;
+}
+
+.table-auto tbody td {
+    @apply px-4 py-2;
+}
+
+.btn {
+    @apply inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700;
+}

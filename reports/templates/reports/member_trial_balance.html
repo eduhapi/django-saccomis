@@ -1,0 +1,29 @@
+<!-- accounting/templates/accounting/member_trial_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Member Trial Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Member Name</th>
+      <th>Share Capital</th>
+      <th>Savings</th>
+      <th>Registration Fee</th>
+      <th>Loan</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in member_accounts %}
+    <tr>
+      <td>{{ account.member }}</td>
+      <td>{{ account.share_capital }}</td>
+      <td>{{ account.savings }}</td>
+      <td>{{ account.reg_fee }}</td>
+      <td>{{ account.loan }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

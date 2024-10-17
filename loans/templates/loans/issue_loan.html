@@ -1,6 +1,7 @@
 <!-- loans/templates/loans/issue_loan.html -->
 {% extends 'base.html' %}
 {% block content %}
+{% include 'more_menu_loans.html' %}
 <h2>Issue Loan</h2>
 <form method="post">
     {% csrf_token %}

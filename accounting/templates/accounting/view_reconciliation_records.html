@@ -1,0 +1,56 @@
+<!-- accounting/templates/accounting/view_reconciliation_records.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+SACCO Charges - AKIBANIPESA
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-2xl font-bold mb-4">SACCO Charges</h2>
+	
+<body>
+    <h1>View Reconciliation Records</h1>
+    <form method="get">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+        <label for="reconciled">Reconciled:</label>
+        <select id="reconciled" name="reconciled">
+            <option value="">All</option>
+            <option value="true" {% if reconciled == 'true' %}selected{% endif %}>Reconciled</option>
+            <option value="false" {% if reconciled == 'false' %}selected{% endif %}>Unreconciled</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Receipt Number</th>
+                <th>Completion Date</th>
+                <th>Paid In Amount</th>
+                <th>Account Reference</th>
+                <th>Priority</th>
+                <th>Reconciled</th>
+                <th>Reconciled At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in reconciliation_records %}
+                <tr>
+                    <td>{{ record.receipt_no }}</td>
+                    <td>{{ record.completion_date }}</td>
+                    <td>{{ record.paid_in }}</td>
+                    <td>{{ record.account_no }}</td>
+                    <td>{{ record.get_priority_display }}</td>
+                    <td>{{ record.reconciled }}</td>
+                    <td>{{ record.reconciled_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}

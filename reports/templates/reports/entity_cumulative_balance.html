@@ -1,0 +1,25 @@
+<!-- accounting/templates/accounting/entity_cumulative_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Entity Cumulative Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Entity Name</th>
+      <th>Total Credits</th>
+      <th>Total Debits</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in entity_accounts %}
+    <tr>
+      <td>{{ account.entity }}</td>
+      <td>{{ account.total_credits }}</td>
+      <td>{{ account.total_debits }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

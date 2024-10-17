@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>All Accounts Report</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Member/No</th>
+                <th>Member</th>
+                <th>Savings</th>
+                <th>Share Capital</th>
+                <th>Mobile Wallet</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr><td>{{ account.id}} </td>
+                <td>{{ account.member.first_name }} {{ account.member.last_name }}</td>
+                <td>{{ account.savings}} </td>
+                <td>{{ account.share_capital}}</td>
+                <td> {{ account.mobile_wallet}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

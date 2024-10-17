@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AKIBANIPESA{% endblock %}</title>
+    <title>{% block title %}SACCOMIS{% endblock %}</title>
     {% load static %}
     <!-- Tailwind CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -29,44 +29,33 @@
                 <li class="mb-2">
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Dashboard</button>
                     <ul class="ml-4 hidden group-links">
-                        <li><a href="{% url 'members:dashboard' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Dashboard</a></li>
+                        <li> <a href="{% url 'members:dashboard' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Dashboard</a></li>
                     </ul>
                 </li>
-				 <li class="mb-2">
-                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Reports</button>
-                    <ul class="ml-4 hidden group-links">
-                        <li><a href="{% url 'reports:member_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Members` statement</a></li>
-						<li><a href="{% url 'reports:loan_balances' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan balances</a></li>
-						<li><a href="{% url 'reports:loan_defaulters' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan defaulterss</a></li>
-                    </ul>
-                </li>
+				
                 <li class="mb-2">
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Members Management</button>
                     <ul class="ml-4 hidden group-links">
-                        <li><a href="{% url 'members:mini_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Member statement</a></li>
-                        <li><a href="{% url 'members:register_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Member</a></li>
-                        <li><a href="{% url 'members:view_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Members</a></li>
-                        <li><a href="{% url 'members:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Edit Member Accounts</a></li>
+                        
+                        <li><a href="{% url 'members:view_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Members menu</a></li>
+                        
                     </ul>
                 </li>
 				 <li class="mb-2">
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Groups Management</button>
                     <ul class="ml-4 hidden group-links">
-                        <li><a href="{% url 'groups:entity_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Group statement</a></li>
-                        <li><a href="{% url 'groups:register_entity' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Register Group</a></li>
-                        <li><a href="{% url 'groups:view_groups' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Groups</a></li>
-                        <li><a href="{% url 'groups:search_entity' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Edit Group Accounts</a></li>
+            
+                        <li><a href="{% url 'groups:view_groups' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Groups menu</a></li>
+                        
                     </ul>
                 </li>
 				 
                 <li class="mb-2">
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Loans Management</button>
                     <ul class="ml-4 hidden group-links">
-                        <li><a href="{% url 'loans:create_loan_product' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Loan Product</a></li>
-                        <li><a href="{% url 'loans:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Issue Loan</a></li>
-                        <li><a href="{% url 'loans:view_loan_products' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Products</a></li>
-                        <li><a href="{% url 'loans:view_issued_loans' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Issued Loans</a></li>
-                        <li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">View Loan Defaulters</a></li>
+                       
+         <li><a href="{% url 'loans:search_member' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loans menu</a></li>
+                        
                     </ul>
                 </li>
 				 <li class="mb-2">
@@ -81,13 +70,23 @@
 				 <li class="mb-2">
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Accounting</button>
                     <ul class="ml-4 hidden group-links">
-                        
+                        <li><a href="{%url 'accounting:daily_accounts_posting' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Daily Posting</a></li>
                         <li><a href=" {%url 'accounting:chart_of_accounts' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Chart of Accounts</a></li>
+						<li><a href=" {%url 'accounting:add_sacco_charge' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add  Sacco Charge</a></li>
+						<li><a href="{%url 'accounting:list_sacco_charges' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">List Charges</a></li>
                         <li><a href="{%url 'accounting:add_expenditure' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Expense</a></li>
                         <li><a href="{%url 'accounting:add_asset' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Add Assets</a></li>
 						<li><a href="{%url 'accounting:generate_reports' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Generate report</a></li>
 						<li><a href="#" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Account statement</a></li>
             
+                    </ul>
+                </li>
+                <li class="mb-2">
+                    <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Reports</button>
+                    <ul class="ml-4 hidden group-links">
+                        <li><a href="{% url 'reports:member_statement_form' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Members` statement</a></li>
+						<li><a href="{% url 'reports:loan_balances' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan balances</a></li>
+						<li><a href="{% url 'reports:loan_defaulters' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Loan defaulterss</a></li>
                     </ul>
                 </li>
                 <li class="mb-2">
@@ -112,9 +111,8 @@
                     <button class="w-full text-left bg-gray-700 p-2 rounded-md group-header font-semibold focus:outline-none">Registry</button>
                     <ul class="ml-4 hidden group-links">
 					
-                        <li><a href="{% url 'registry:upload_bulk_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Members</a></li>
-						<li><a href="{% url 'registry:upload_bulk_member_accounts' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Membe Accounts</a></li>
-						<li><a href="{% url 'registry:upload_bulk_next_of_kin' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Upload Next of Kin</a></li>
+                        <li><a href="{% url 'registry:upload_bulk_members' %}" class="block py-2 px-4 bg-gray-600 rounded-md hover:bg-gray-500 mt-1">Registry menu</a></li>
+						
                     </ul>
                 </li>
                 

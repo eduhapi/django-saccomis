@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Deactivate Member</h2>
+    <form method="post" action="{% url 'members:deactivate_member' member_id=member.id %}">
+        {% csrf_token %}
+        <button type="submit">Deactivate</button>
+    </form>
+</div>
+{% endblock %}

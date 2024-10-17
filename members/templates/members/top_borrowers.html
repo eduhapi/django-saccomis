@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Top Borrowers</h2>
+    <ul>
+        {% for borrower in top_borrowers %}
+        <li>{{ borrower.member.first_name }} {{ borrower.member.last_name }} - {{ borrower.balance }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

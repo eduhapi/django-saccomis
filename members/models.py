@@ -62,7 +62,7 @@ class MemberAccount(models.Model):
     share_capital = models.DecimalField(max_digits=10, decimal_places=2)
     savings = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
     reg_fee = models.DecimalField(max_digits=10, decimal_places=2, default=1500.00)
-    loan = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    mobile_wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
      return f'{self.member.first_name} {self.member.last_name} Account'
@@ -106,6 +106,35 @@ class Transaction(models.Model):
         if not self.sacco_ref_code:
             self.sacco_ref_code = uuid.uuid4().hex[:10]
         super(Transaction, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.sacco_ref_code} - {self.member_id}"
+        
+class MemberAccountsLedger(models.Model):
+    TRANSACTION_MODES = [
+        (1, 'Mpesa'),
+        (2, 'Cash'),
+        (3, 'Bank Transfer')
+    ]
+
+    
+    sacco_ref_code = models.CharField(max_length=10, unique=True, blank=True, null=True)
+    member_id = models.ForeignKey('Member', on_delete=models.CASCADE)
+    tr_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tr_type =  models.CharField(max_length=100)
+    tr_account = models.CharField(max_length=20)  # e.g., 'savings', 'share_capital', 'withdraw', 'transfer', 'loan_repayment'
+    account_id = models.IntegerField()  # savings, share_capital, loans
+    tr_mode_id = models.IntegerField(choices=TRANSACTION_MODES)
+    tr_origin = models.CharField(max_length=100)
+    tr_destn = models.CharField(max_length=100)  # e.g., 'member account', 'beneficiary id'
+    external_ref_code = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    updated_by = models.CharField(max_length=100, default='system')
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.sacco_ref_code:
+            self.sacco_ref_code = uuid.uuid4().hex[:10]
+        super(MemberAccountsLedger, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.sacco_ref_code} - {self.member_id}"

@@ -1,0 +1,5 @@
+cd C:\Users\hp\Desktop\Folders_2024\Python\saccomis
+cd saccomisenv
+Scripts\activate
+cd C:\Users\hp\Desktop\Folders_2024\Python\saccomis
+python manage.py runserver

@@ -46,7 +46,7 @@ class EntityAccount(models.Model):
     reg_fee = models.DecimalField(max_digits=10, decimal_places=2, default=5000.00)
     savings = models.DecimalField(max_digits=10, decimal_places=2, default=5000.00)
     share_capital = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
-    loan = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    mobile_wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
 # Model for entity officials
 class EntityOfficial(models.Model):

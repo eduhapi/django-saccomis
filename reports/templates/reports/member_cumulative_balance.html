@@ -1,0 +1,25 @@
+<!-- accounting/templates/accounting/member_cumulative_balance.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Member Cumulative Balance</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Member Name</th>
+      <th>Total Credits</th>
+      <th>Total Debits</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for account in member_accounts %}
+    <tr>
+      <td>{{ account.member }}</td>
+      <td>{{ account.total_credits }}</td>
+      <td>{{ account.total_debits }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

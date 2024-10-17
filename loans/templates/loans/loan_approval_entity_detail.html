@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <h2 class="text-2xl font-bold mb-4">Loan Approval Detail</h2>
+    <h3 class="text-lg font-semibold mb-2">Loan Details</h3>
+    <p><strong>Entity:</strong> {{ entity.entity_name }}</p>
+    <p><strong>Amount:</strong> {{ loan.loan_amount }}</p>
+    <p><strong>Issued Date:</strong> {{ loan.created_at }}</p>
+    <p><strong>Savings Amount:</strong> {{ savings }}</p>
+    
+    <h3 class="text-lg font-semibold mb-2">Last 6 Transactions</h3>
+    <ul>
+        {% for transaction in transactions %}
+        <li>{{ transaction.updated_at }} - {{ transaction.tr_amount }} (Account: {{ transaction.tr_account }})</li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="text-lg font-semibold mb-2">Collaterals</h3>
+    <ul>
+        {% for collateral in collaterals %}
+        <li>{{ collateral.collateral_type }}: {{ collateral.document_ref_no }} - Ksh {{ collateral.value }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="text-lg font-semibold mb-2">Guarantors</h3>
+    <ul>
+        {% for guarantor in guarantors %}
+        <li>{{ guarantor.guarantor }} - Ksh {{ guarantor.guarantee_amount }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="text-lg font-semibold mb-2">Loan Approval</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mt-4">Submit</button>
+    </form>
+</div>
+{% endblock %}

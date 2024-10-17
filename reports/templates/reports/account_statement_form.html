@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Statement Form{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-8 p-4">
+    <h1 class="text-3xl font-bold mb-4">Account Statement Form</h1>
+    
+    <!-- Message display section -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="account_id" class="block text-gray-700">Member/Entity ID</label>
+            {{ form.account_id }}
+        </div>
+        <div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Fetch Statement</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

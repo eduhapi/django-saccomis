@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from .forms import EntityForm, EntityAccountForm, EntityOfficialForm, DepositForm, WithdrawForm, TransferForm, EntityStatementFilterForm
+from .forms import EntityForm, EntityAccountForm, EntityOfficialForm, DepositForm, WithdrawForm, TransferForm, EntityStatementFilterForm,LoanRepaymentForm
 from .models import Entity, EntityAccount, EntityOfficial, EntityAccountsLedger
 from accounting.models import SaccoAccount, SaccoAccountsLedger
 from loans.models import IssuedLoan, Collateral, Guarantor
@@ -118,19 +118,50 @@ def updated_entity_details(request, entity_id):
     entity = get_object_or_404(Entity, id=entity_id)
     account = get_object_or_404(EntityAccount, entity=entity)
     return render(request, 'groups/updated_entity_details.html', {'entity': entity, 'account': account})
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum
+
 @login_required
 def view_groups(request):
     groups = Entity.objects.all().select_related('account')
-    context = {'groups': groups}
+    
+    active_loans = IssuedLoan.objects.filter(
+        loan_status='active',
+        content_type=ContentType.objects.get_for_model(Entity)
+    )
+    
+    # Annotate each group with their active loan amount
+    group_loan_data = {
+        loan.object_id: loan.loan_balance
+        for loan in active_loans
+    }
+    
+    context = {
+        'groups': groups,
+        'group_loan_data': group_loan_data
+    }
     return render(request, 'groups/view_groups.html', context)
+
+
+from django.contrib import messages
+from django.shortcuts import render
+from .models import Entity
 
 @login_required
 def search_entity(request):
     if request.method == 'POST':
         search_term = request.POST.get('search_term')
         entities = Entity.objects.filter(id=search_term) | Entity.objects.filter(entity_name__icontains=search_term)
-        return render(request, 'groups/search_entity.html', {'entities': entities})
+
+        if entities.exists():
+            return render(request, 'groups/search_entity.html', {'entities': entities})
+        else:
+            messages.warning(request, f"No entities found matching '{search_term}'.")
+    else:
+        messages.error(request, "Invalid request method.")
+
     return render(request, 'groups/search_entity.html')
+
 
 @login_required
 def select_action(request, entity_id):
@@ -147,16 +178,106 @@ def update_entity_accounts(request, entity_id):
             return redirect('groups:withdraw', entity_id=entity_id)
         elif action == 'transfer':
             return redirect('groups:transfer', entity_id=entity_id)
+        elif action == 'loan_repayment':
+            return redirect('groups:loan_repayment', entity_id=entity_id)
         else:
             messages.error(request, 'Invalid action selected.')
             return redirect('groups:search_entity')
     return redirect('groups:search_entity')
+@login_required
+def loan_repayment(request, entity_id):
+    entity = get_object_or_404(Entity, id=entity_id)
+    account = get_object_or_404(EntityAccount, entity=entity)
+    issued_loan = IssuedLoan.objects.filter(object_id=entity_id, loan_status='active').first()
+
+    if request.method == 'POST':
+        form = LoanRepaymentForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            external_ref_code = form.cleaned_data['external_ref_code']
+
+            try:
+                if issued_loan:
+                    overpayment = amount - issued_loan.loan_balance
+                    if overpayment >= 0:
+                        # Fully repay the loan and add overpayment to savings
+                        issued_loan.loan_balance = 0
+                        issued_loan.loan_status = 'settled'
+                        issued_loan.save()
+
+                        Collateral.objects.filter(loan=issued_loan).update(loan_status='settled')
+                        Guarantor.objects.filter(loan=issued_loan).update(loan_status='settled')
+
+                        account.savings += overpayment
+                        account.save()
+
+                        # Record the loan repayment transaction
+                        EntityAccountsLedger.objects.create(
+                            entity=entity,
+                            tr_amount=issued_loan.loan_balance,
+                            external_ref_code=external_ref_code,
+                            tr_type='credit',
+                            tr_account='loan_repayment',
+                            tr_mode_id=1,  # Default to Mpesa for now
+                            tr_origin='entity_deposit',
+                            tr_destn='entity_account',
+                            updated_by=request.user,
+                            updated_at=timezone.now()
+                        )
+
+                        # Record the overpayment transaction
+                        EntityAccountsLedger.objects.create(
+                            entity=entity,
+                            tr_amount=overpayment,
+                            external_ref_code=external_ref_code,
+                            tr_type='credit',
+                            tr_account='savings',
+                            tr_mode_id=1,  # Default to Mpesa for now
+                            tr_origin='entity_deposit',
+                            tr_destn='entity_account',
+                            updated_by=request.user,
+                            updated_at=timezone.now()
+                        )
+
+                        messages.success(request, f'Loan of Ksh {issued_loan.loan_balance} fully repaid. Overpayment of Ksh {overpayment} added to savings.')
+                    else:
+                        # Partially repay the loan
+                        issued_loan.loan_balance -= amount
+                        issued_loan.save()
+
+                        EntityAccountsLedger.objects.create(
+                            entity=entity,
+                            tr_amount=amount,
+                            external_ref_code=external_ref_code,
+                            tr_type='credit',
+                            tr_account='loan_repayment',
+                            tr_mode_id=1,  # Default to Mpesa for now
+                            tr_origin='entity_deposit',
+                            tr_destn='entity_account',
+                            updated_by=request.user,
+                            updated_at=timezone.now()
+                        )
+
+                        messages.success(request, f'Loan repayment of Ksh {amount} successful. Remaining loan balance is Ksh {issued_loan.loan_balance}.')
+                else:
+                    messages.error(request, f'No active loan found for {entity.entity_name}.')
+            except Exception as e:
+                messages.error(request, f'Error processing loan repayment: {str(e)}')
+        else:
+            for field in form:
+                for error in field.errors:
+                    messages.error(request, f'{field.label}: {error}')
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        form = LoanRepaymentFormForm()
+
+    return render(request, 'groups/loan_repayment.html', {'form': form, 'entity': entity})
 
 @login_required
 def deposit(request, entity_id):
     entity = get_object_or_404(Entity, id=entity_id)
     account = get_object_or_404(EntityAccount, entity=entity)
-    issued_loan= get_object_or_404(IssuedLoan.objects.filter(object_id=entity_id))
 
     if request.method == 'POST':
         form = DepositForm(request.POST)
@@ -170,30 +291,11 @@ def deposit(request, entity_id):
                     account.savings += amount
                 elif account_type == 'share_capital':
                     account.share_capital += amount
-                elif account_type == 'loan':
-                    # Check if there's an active loan and update loan balance
-                    issued_loan = IssuedLoan.objects.filter(object_id=entity_id, loan_status='active').first()
-                    if issued_loan:
-                        new_balance = issued_loan.loan_balance + amount
-                        if issued_loan.loan_balance <= 0:
-                            # Update loan balance and allow overpayment
-                            issued_loan.loan_balance = new_balance
-                            if issued_loan.loan_balance >= 0:
-                                # Mark collateral and guarantor as settled if fully repaid
-                                issued_loan.loan_status = 'settled'
-                                Collateral.objects.filter(loan=issued_loan).update(loan_status='settled')
-                                Guarantor.objects.filter(loan=issued_loan).update(loan_status='settled')
-                        else:
-                            # Prevent further payments if loan balance is zero or positive
-                            messages.error(request, 'Loan is already fully repaid or overpaid. No further payments allowed.')
-                            raise ValueError('Loan is already fully repaid or overpaid.')
-
-                    else:
-                        messages.error(request, f'No active loan found for {entity.entity_name}.')
-                        raise ValueError('No active loan found.')
+                else:
+                    messages.error(request, 'Invalid account type for deposit.')
+                    raise ValueError('Invalid account type.')
 
                 account.save()
-                issued_loan.save()
 
                 # Record the transaction
                 EntityAccountsLedger.objects.create(
@@ -230,9 +332,6 @@ def deposit(request, entity_id):
         form = DepositForm()
 
     return render(request, 'groups/deposit.html', {'form': form, 'entity': entity})
-
-
-
 @login_required
 def withdraw(request, entity_id):
     entity = get_object_or_404(Entity, id=entity_id)
@@ -483,3 +582,25 @@ def download_excel(request):
         return response
     except Exception as e:
         return HttpResponse(f"Error generating Excel: {e}")
+@login_required
+def entity_profile(request, entity_id):
+    entity = get_object_or_404(Entity, id=entity_id)
+    
+    # Fetch active loans and calculate their total principal
+    active_loans = IssuedLoan.objects.filter(object_id=entity_id, loan_status='active')
+    active_loan_principal = active_loans.aggregate(Sum('loan_amount'))['loan_amount__sum'] or 0
+    active_loan_balance = active_loans.aggregate(Sum('loan_balance'))['loan_balance__sum'] or 0
+    # Fetch all loans and calculate their total balance
+    all_loans = IssuedLoan.objects.filter(object_id=entity_id)
+    total_loans_taken = all_loans.aggregate(Sum('loan_amount'))['loan_amount__sum'] or 0
+    
+    entityofficial = EntityOfficial.objects.filter(entity_id=entity_id)
+
+    context = {
+        'entity': entity,
+        'entityofficial': entityofficial,
+        'active_loan_principal': active_loan_principal,
+        'total_loans_taken': total_loans_taken,
+        'active_loan_balance':active_loan_balance,
+    }
+    return render(request, 'groups/entity_profile.html', context)

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Search Member</h2>
+    <form method="get" action="{% url 'members:search_member_1' %}">
+        <input type="text" name="q" placeholder="Search...">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for member in members %}
+
+        <li>{{ member.id}} {{ member.first_name }} {{ member.last_name }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

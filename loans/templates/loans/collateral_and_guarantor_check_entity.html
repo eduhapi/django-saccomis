@@ -10,7 +10,7 @@
             <p>The collateral and guarantor value ({{ total_value }}) is equal to or exceeds the loan amount ({{ required_value }}).</p>
             <p>You can proceed to release the loan.</p>
         </div>
-        <a href="{% url 'loans:release_loan_entity' entity.id loan.id %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md inline-block mb-4">Next</a>
+        <a href="{% url 'loans:loan_approval_list' %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md inline-block mb-4">Next</a>
     {% else %}
         <div class="alert alert-danger mb-4">
             <p class="font-semibold">Check Failed</p>

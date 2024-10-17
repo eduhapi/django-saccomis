@@ -1,11 +1,23 @@
-# .gitignore
+# Python
+*.pyc
+__pycache__/
+
+# Environment variables
+.env
+
+# Django stuff:
+*.log
+*.pot
 *.pyc
 __pycache__/
 db.sqlite3
-/staticfiles/
-/photos/
-/static/
-/client_photos/
-/signatures/
-.env
-myenv/
+media/
+static/
+
+# Virtual environments:
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/

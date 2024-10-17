@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+    {% include 'more_menu_members.html' %}
     <div class="container mx-auto mt-8 px-4">
         <h1 class="text-2xl font-bold mb-4">Withdraw for {{ member.first_name }} {{ member.last_name }}</h1>
         <form method="POST" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">

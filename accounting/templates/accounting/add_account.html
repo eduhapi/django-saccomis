@@ -1,15 +1,27 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Add Account - AKIBANIPESA
+    Add Account - SACCOMIS
 {% endblock %}
 
 {% block content %}
+    {% include 'more_menu_accounting.html' %}
     <div class="container mx-auto mt-8 px-4">
         <h1 class="text-2xl font-bold mb-4">Add Account</h1>
         <form method="post" class="max-w-md bg-white shadow-md rounded-lg p-6 mx-auto mb-4">
             {% csrf_token %}
             {{ form.as_p }}
+            <div class="mt-4">
+                <label for="account_type">Account Type</label>
+                <select name="account_type" id="account_type">
+                    <option value="income">Income Account</option>
+                    <option value="expenditure">Expenditure Account</option>
+                    <option value="fixed_asset">Fixed Asset Account</option>
+                    <option value="current_asset">Current Asset Account</option>
+                    <option value="current_liability">Current Liability Account</option>
+                    <option value="long_term_liability">Long-Term Liability Account</option>
+                </select>
+            </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Submit</button>
         </form>
     </div>

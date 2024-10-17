@@ -35,6 +35,11 @@ urlpatterns = [
     path('delete-collateral-entity/<str:entity_id>/<int:loan_id>/<int:collateral_id>/', views.delete_collateral_entity, name='delete_collateral_entity'),
     path('collateral-and-guarantor-check/<int:member_id>/<int:loan_id>/', views.collateral_and_guarantor_check, name='collateral_and_guarantor_check'),
     path('collateral-and-guarantor-check-entity/<str:entity_id>/<int:loan_id>/', views.collateral_and_guarantor_check_entity, name='collateral_and_guarantor_check_entity'),
+    path('loan-approvals/', views.loan_approval_list, name='loan_approval_list'),
+    #path('loan-approval/<int:loan_id>/', views.loan_approval_detail, name='loan_approval_detail'),
+    path('loan-approval/member/<int:loan_id>/', views.loan_approval_member_detail, name='loan_approval_member_detail'),
+    path('loan-approval/entity/<int:loan_id>/', views.loan_approval_entity_detail, name='loan_approval_entity_detail'),
+
 
 ]
 

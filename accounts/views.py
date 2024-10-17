@@ -32,7 +32,7 @@ def signup_view(request):
             })
             plain_message = strip_tags(html_message)
             
-            email_message = EmailMultiAlternatives(mail_subject, plain_message, 'your-email@example.com', [email])
+            email_message = EmailMultiAlternatives(mail_subject, plain_message, 'info2@kodetrix.co.ke', [email])
             email_message.attach_alternative(html_message, "text/html")
             email_message.send()
 
